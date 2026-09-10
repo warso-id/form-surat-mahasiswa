@@ -1,21 +1,1081 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0b5d4b"><title>FIKOM Digital Service</title>
-<link rel="icon" href="https://i.imgur.com/JkxRYd6.png">
-<link rel="stylesheet" href="css/app.css"><link rel="stylesheet" href="css/chat.css"><link rel="stylesheet" href="css/dashboard.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generator Surat PKL, Magang, Penelitian &amp; Praktik Profesional — FIKOM Moestopo</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+  :root{
+    --primary:#1a3a7a;
+    --primary-dark:#122c5c;
+    --accent:#f0b323;
+    --bg:#eef1f6;
+    --panel:#ffffff;
+    --text:#1f2937;
+    --muted:#6b7280;
+    --danger:#dc2626;
+    --ok:#10b981;
+    --border:#d5d9e0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:'Segoe UI',Tahoma,system-ui,-apple-system,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ================ HEADER APP ================ */
+  .app-header{
+    background:linear-gradient(135deg,#1a3a7a 0%,#2c5aa0 100%);
+    color:#fff;
+    padding:18px 20px;
+    text-align:center;
+    box-shadow:0 2px 10px rgba(0,0,0,.15);
+  }
+  .app-header h1{font-size:19px;font-weight:700;letter-spacing:.3px}
+  .app-header p{font-size:12.5px;opacity:.85;margin-top:4px}
+
+  /* ================ LAYOUT ================ */
+  .container{
+    max-width:1320px;
+    margin:22px auto;
+    padding:0 16px 40px;
+    display:grid;
+    grid-template-columns:440px minmax(0,1fr);
+    gap:22px;
+    align-items:start;
+  }
+  @media (max-width:1000px){
+    .container{grid-template-columns:1fr}
+  }
+
+  .card{
+    background:var(--panel);
+    border-radius:12px;
+    padding:22px;
+    box-shadow:0 4px 18px rgba(15,23,42,.06);
+    border:1px solid #e8ecf2;
+  }
+  .card h2{
+    font-size:15px;
+    font-weight:700;
+    color:var(--primary);
+    margin-bottom:16px;
+    padding-bottom:10px;
+    border-bottom:2px solid #eef1f6;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .card h2::before{
+    content:'';
+    display:inline-block;
+    width:4px;height:16px;
+    background:var(--accent);
+    border-radius:2px;
+  }
+
+  /* ================ FORM HEADER (LOGO) ================ */
+  .form-brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:12px 14px;
+    margin-bottom:16px;
+    background:linear-gradient(135deg,#f5f8ff 0%,#eef3fc 100%);
+    border:1px solid #dbe6f8;
+    border-radius:10px;
+  }
+  .form-brand img{
+    width:52px;height:auto;
+    flex-shrink:0;
+  }
+  .form-brand .brand-text{
+    font-size:11.5px;
+    line-height:1.35;
+    color:#334155;
+  }
+  .form-brand .brand-text strong{
+    display:block;
+    font-size:12.5px;
+    color:var(--primary);
+    margin-bottom:1px;
+  }
+
+  /* ================ FORM FIELDS ================ */
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .form-group{margin-bottom:13px}
+  .form-group label{
+    display:block;
+    font-size:11.5px;
+    font-weight:600;
+    color:#4b5563;
+    margin-bottom:5px;
+    letter-spacing:.2px;
+  }
+  .form-group label .req{color:var(--danger);margin-left:2px}
+  .form-group input,
+  .form-group select,
+  .form-group textarea{
+    width:100%;
+    padding:9px 12px;
+    border:1.5px solid var(--border);
+    border-radius:7px;
+    font-size:13px;
+    font-family:inherit;
+    color:var(--text);
+    background:#fff;
+    transition:border-color .15s,box-shadow .15s,background .15s;
+  }
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus{
+    outline:none;
+    border-color:var(--primary);
+    box-shadow:0 0 0 3px rgba(26,58,122,.12);
+  }
+  .form-group input.invalid,
+  .form-group select.invalid{
+    border-color:var(--danger);
+    background:#fff5f5;
+  }
+  .form-group input.valid{
+    border-color:var(--ok);
+    background:#f0fdf4;
+  }
+  .form-group textarea{resize:vertical;min-height:70px;font-family:inherit}
+  .hint{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4}
+  .error-msg{
+    color:var(--danger);
+    font-size:11px;
+    margin-top:3px;
+    min-height:14px;
+    line-height:1.3;
+  }
+  .form-group input[readonly]{background:#f8fafc;cursor:default}
+
+  /* ================ BUTTONS ================ */
+  .btn{
+    padding:10px 16px;
+    border:none;
+    border-radius:7px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    font-family:inherit;
+    transition:all .15s;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+  }
+  .btn-primary{background:var(--primary);color:#fff}
+  .btn-primary:hover{background:var(--primary-dark)}
+  .btn-secondary{background:#e9ecf1;color:#374151}
+  .btn-secondary:hover{background:#dde1e8}
+  .btn-block{width:100%;margin-top:8px}
+  .btn:disabled{opacity:.55;cursor:not-allowed}
+  .btn-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+
+  /* ================ PREVIEW ================ */
+  .preview-panel{
+    background:#d8dbe0;
+    padding:24px 16px;
+    border-radius:12px;
+    overflow:hidden;
+    display:flex;
+    justify-content:center;
+    min-height:400px;
+  }
+  .preview-scaler{
+    transform-origin:top left;
+    transition:transform .2s ease;
+  }
+
+  /* ==================================================
+     A4 LETTER — Format sesuai spesifikasi
+     - padding atas 0,5cm (jarak ke kop)
+     - padding sisi 2cm (margin tulisan)
+     - padding bawah 2cm
+  ================================================== */
+  #letter{
+    width:210mm;
+    min-height:297mm;
+    background:#fff;
+    padding:0.5cm 2cm 2cm 2cm;
+    font-family:'Times New Roman',Times,serif;
+    font-size:12pt;
+    color:#000;
+    line-height:1.5;
+    box-shadow:0 4px 22px rgba(0,0,0,.18);
+    position:relative;
+  }
+
+  /* ---- Kop surat : gambar, tinggi 3cm, lebar = margin tulisan (170mm) ---- */
+  .kop-img{
+    display:block;
+    width:100%;
+    height:3cm;
+    object-fit:fill;
+    margin:0 0 0.4cm 0;
+  }
+
+  /* ---- Nomor / Lamp. / Hal : rata kiri (normal), Body Text ---- */
+  .nomor-block{
+    margin:0 0 12pt 0;
+    line-height:1.5;
+  }
+  .nomor-block table{
+    border-collapse:collapse;
+    font-size:12pt;
+    line-height:1.5;
+  }
+  .nomor-block td{
+    padding:0;
+    vertical-align:top;
+  }
+  .nomor-block td.label{width:2.2cm}
+  .nomor-block td.colon{width:0.6cm}
+
+  /* ---- Body content :
+         Left = 3cm dari tepi kiri halaman
+         (padding #letter 2cm + margin-left 1cm)
+         Right = 1cm dari margin tulisan (menjaga proporsi)
+  ---- */
+  .letter-content{
+    margin-left:1cm;
+    margin-right:1cm;
+  }
+
+  .letter-content p{
+    margin:12pt 0;
+    line-height:1.5;
+    text-align:justify;
+    font-size:12pt;
+  }
+
+  /* Blok tujuan (Yth. ...) */
+  .tujuan{
+    margin:12pt 0;
+    line-height:1.5;
+    font-size:12pt;
+  }
+  .tujuan .to-rest{
+    /* sudah otomatis sejajar karena semua di dalam .letter-content */
+  }
+
+  /* Tabel data mahasiswa — indentasi tambahan dari tepi kiri body */
+  .student-table{
+    border-collapse:collapse;
+    margin:12pt 0 12pt 1.27cm;
+    font-size:12pt;
+    line-height:1.5;
+  }
+  .student-table td{
+    padding:1.5px 0;
+    vertical-align:top;
+    line-height:1.5;
+  }
+  .student-table td:nth-child(1){width:3cm}
+  .student-table td:nth-child(2){width:0.5cm}
+
+  /* ---- Tanda tangan : blok di kanan ---- */
+  .signature{
+    margin-top:24pt;
+    width:8cm;
+    margin-left:auto;
+    margin-right:0;
+    line-height:1.5;
+    font-size:12pt;
+    clear:both;
+  }
+  .signature .place-date{margin-bottom:0}
+  .signature .jabatan{margin-bottom:0}
+  .signature .sig-space{height:64pt}
+  .signature .name{margin-bottom:0}
+
+  /* ================ TOAST ================ */
+  #toast{
+    position:fixed;
+    bottom:24px;
+    left:50%;
+    transform:translateX(-50%) translateY(80px);
+    background:#1f2937;
+    color:#fff;
+    padding:11px 20px;
+    border-radius:8px;
+    font-size:13px;
+    opacity:0;
+    pointer-events:none;
+    transition:all .3s ease;
+    z-index:9999;
+    box-shadow:0 8px 24px rgba(0,0,0,.25);
+    max-width:90vw;
+    text-align:center;
+  }
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  #toast.error{background:var(--danger)}
+  #toast.success{background:#059669}
+
+  .spinner{
+    display:inline-block;
+    width:14px;height:14px;
+    border:2px solid rgba(255,255,255,.35);
+    border-radius:50%;
+    border-top-color:#fff;
+    animation:spin .7s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
 </head>
 <body>
-<header class="topbar"><div class="brand"><img src="https://i.imgur.com/JkxRYd6.png"><div><b>FIKOM Digital Service</b><small>Universitas Prof. Dr. Moestopo (Beragama)</small></div></div>
-<div class="top-actions"><button id="notifBtn" class="icon-btn">🔔<span id="notifBadge"></span></button><button id="logoutBtn" class="ghost-btn hidden">Keluar</button></div></header>
-<main>
-<section id="loginView" class="auth-view"><div class="auth-card"><img class="auth-logo" src="https://i.imgur.com/JkxRYd6.png"><span class="eyebrow">LAYANAN SURAT DIGITAL</span>
-<h1>Semua urusan surat,<br><span>lebih simpel.</span></h1><p>Ajukan, pantau, revisi, dan terima surat secara digital.</p>
-<form id="loginForm"><label>NIM / Email / Username</label><input id="loginIdentity" required autocomplete="username"><label>Password</label><input id="loginPassword" required type="password" autocomplete="current-password"><button class="primary-btn full">Masuk →</button></form><div id="loginMsg" class="form-msg"></div></div></section>
-<section id="appView" class="hidden"><div class="page-wrap"><aside class="sidebar"><div id="userCard" class="user-card"></div><nav>
-<button class="nav-item active" data-view="dashboard">🏠 Dashboard</button><button class="nav-item" data-view="chat">💬 Layanan Surat</button><button class="nav-item" data-view="pengajuan">📋 Pengajuan Saya</button><button class="nav-item" data-view="workflow" id="workflowNav">⚡ Approval Center</button>
-</nav></aside><section class="content"><div id="dashboardView" class="view"></div><div id="chatView" class="view hidden"></div><div id="pengajuanView" class="view hidden"></div><div id="workflowView" class="view hidden"></div></section></div></section>
-</main><div id="toast" class="toast"></div>
-<script src="js/api.js"></script><script src="js/auth.js"></script><script src="js/chat.js"></script><script src="js/pengajuan.js"></script><script src="js/workflow.js"></script><script src="js/notification.js"></script><script src="js/app.js"></script>
-</body></html>
+
+<div class="app-header">
+  <h1>Generator Surat PKL, Magang, Penelitian &amp; Praktik Profesional</h1>
+  <p>Fakultas Ilmu Komunikasi — Universitas Prof. Dr. Moestopo (Beragama)</p>
+</div>
+
+<div class="container">
+
+  <!-- ============ FORM PANEL ============ -->
+  <div class="card">
+    <div class="form-brand">
+      <img src="https://i.imgur.com/JkxRYd6.png" alt="Logo FIKOM">
+      <div class="brand-text">
+        <strong>FIKOM Moestopo</strong>
+        Formulir permohonan surat pengantar PKL / Magang / Penelitian / Praktik Profesional
+      </div>
+    </div>
+
+    <h2>Formulir Surat</h2>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Jenjang <span class="req">*</span></label>
+        <select id="jenjang">
+          <option value="S1">S1 (Sarjana)</option>
+          <option value="S2">S2 (Magister)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Jenis Permohonan <span class="req">*</span></label>
+        <select id="jenis"></select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Nama Lengkap <span class="req">*</span></label>
+      <input type="text" id="nama" placeholder="Nama sesuai KTM" autocomplete="off">
+    </div>
+
+    <div class="form-group">
+      <label>N.I.M <span class="req">*</span></label>
+      <input type="text" id="nim" placeholder="Contoh: 202241213" maxlength="9" inputmode="numeric" autocomplete="off">
+      <div class="hint" id="nimHint">S1 : 4 digit tahun + <b>41</b> + 3 digit urut (mulai 001). Contoh: 2022<b>41</b>001</div>
+      <div class="error-msg" id="nimError"></div>
+    </div>
+
+    <div class="form-group">
+      <label>Konsentrasi <span class="req">*</span></label>
+      <input type="text" id="konsentrasi" placeholder="Contoh: Humas / Jurnalistik / Broadcasting" autocomplete="off">
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>No. HP / WhatsApp <span class="req">*</span></label>
+        <input type="text" id="hp" placeholder="08xxxxxxxxxx" maxlength="13" inputmode="numeric" autocomplete="off">
+        <div class="error-msg" id="hpError"></div>
+      </div>
+      <div class="form-group">
+        <label>Email <span class="req">*</span></label>
+        <input type="email" id="email" placeholder="nama@email.com" autocomplete="off">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Tujuan Surat (Instansi) <span class="req">*</span></label>
+      <textarea id="tujuan" rows="4">Substansi Hubungan Masyarakat
+Kementerian Pendidikan Tinggi, Sains dan Teknologi
+Jl. Jend. Sudirman, Pintu 1, Senayan, Gedung D
+Jakarta, Indonesia 10270.</textarea>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Periode Mulai <span class="req">*</span></label>
+        <input type="text" id="periodeMulai" placeholder="September 2025" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label>Periode Selesai <span class="req">*</span></label>
+        <input type="text" id="periodeSelesai" placeholder="Desember 2025" autocomplete="off">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Durasi <span class="req">*</span></label>
+      <input type="text" id="durasi" value="empat (4) bulan" placeholder="Contoh: empat (4) bulan" autocomplete="off">
+    </div>
+
+    <div class="form-group">
+      <label>Tanggal Surat <span class="req">*</span></label>
+      <input type="date" id="tanggal">
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label id="kaprodiLabel">Nama Kaprodi S1 <span class="req">*</span></label>
+        <input type="text" id="namaKaprodi" placeholder="Nama Kaprodi" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label>Gelar / Jabatan Kaprodi</label>
+        <input type="text" id="jabatanKaprodi" value="Kaprodi," placeholder="Kaprodi," autocomplete="off">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Nomor Surat (otomatis)</label>
+      <input type="text" id="nomorPreview" readonly>
+      <div class="hint">Nomor digenerate otomatis dari server. Urut dimulai dari <b>001</b> tiap <b>Tahun Akademik (01 Sept – 31 Agustus)</b>, dikelompokkan per jenjang &amp; jenis.</div>
+    </div>
+
+    <button type="button" class="btn btn-primary btn-block" id="btnGenerate">
+      <span id="btnGenerateText">📄 Generate &amp; Unduh PDF</span>
+    </button>
+
+    <div class="btn-row">
+      <button type="button" class="btn btn-secondary" id="btnRefresh">🔄 Perbarui Preview</button>
+      <button type="button" class="btn btn-secondary" id="btnReset">↺ Reset</button>
+    </div>
+  </div>
+
+  <!-- ============ PREVIEW PANEL ============ -->
+  <div class="preview-panel">
+    <div class="preview-scaler" id="previewScaler">
+      <div id="letter">
+
+        <!-- KOP SURAT : GAMBAR SAJA — tinggi 3cm, 0,5cm dari atas halaman -->
+        <img class="kop-img" src="https://i.imgur.com/92EDVAN.png" alt="Kop Surat FIKOM">
+
+        <!-- NOMOR / LAMP. / HAL : rata kiri (Body Text) -->
+        <div class="nomor-block">
+          <table>
+            <tr>
+              <td class="label">Nomor</td>
+              <td class="colon">:</td>
+              <td id="outNomor">......./PKL/S1/FIKOM/IX/2026</td>
+            </tr>
+            <tr>
+              <td class="label">Lamp.</td>
+              <td class="colon">:</td>
+              <td>-</td>
+            </tr>
+            <tr>
+              <td class="label">Hal</td>
+              <td class="colon">:</td>
+              <td id="outHal">Praktek Kerja Lapangan</td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- ISI SURAT : Left = 3cm, Right = 1cm, spacing 12pt/12pt, line 1.5 -->
+        <div class="letter-content">
+
+          <div class="tujuan">
+            <div>Yth. <span id="outTujuanLine1">Substansi Hubungan Masyarakat</span></div>
+            <div class="to-rest" id="outTujuanRest">
+              Kementerian Pendidikan Tinggi, Sains dan Teknologi<br>
+              Jl. Jend. Sudirman, Pintu 1, Senayan, Gedung D<br>
+              Jakarta, Indonesia 10270.
+            </div>
+          </div>
+
+          <p>Dengan hormat,</p>
+
+          <p>Untuk memenuhi tugas mahasiswa Fakultas Ilmu Komunikasi, Universitas Prof. Dr. Moestopo (Beragama) yang namanya tercantum di bawah ini :</p>
+
+          <table class="student-table">
+            <tr><td>Nama</td><td>:</td><td id="outNama">-</td></tr>
+            <tr><td>N.I.M</td><td>:</td><td id="outNim">-</td></tr>
+            <tr><td>Konsentrasi</td><td>:</td><td id="outKonsentrasi">-</td></tr>
+            <tr><td>No.Hp/Email</td><td>:</td><td id="outKontak">-</td></tr>
+          </table>
+
+          <p id="outBody1">
+            Mengajukan permohonan untuk melaksanakan Praktek Kerja Lapangan (PKL) selama empat (4) bulan (September – Desember 2025) di Instansi yang Bapak/Ibu pimpin.
+          </p>
+
+          <p id="outBody2">
+            Mengenai waktu pelaksanaan PKL tersebut, kami serahkan pada kebijaksanaan Bapak / Ibu.
+          </p>
+
+          <p id="outBody3">
+            Kami berharap Bapak / Ibu dapat membantu, mengingat PKL tersebut mata kuliah wajib bagi mahasiswa kami.
+          </p>
+
+          <p>
+            Demikian atas perhatian dan kerjasamanya kami sampaikan terima kasih.
+          </p>
+
+          <!-- TANDA TANGAN : di kanan -->
+          <div class="signature">
+            <div class="place-date">Jakarta, <span id="outTanggal">-</span></div>
+            <div class="jabatan" id="outJabatan">Kaprodi,</div>
+            <div class="sig-space"></div>
+            <div class="name" id="outKaprodi">-</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ============================================================
+   KONFIGURASI
+============================================================ */
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwY7g5xZ1MU2PBNtoxPTMNbKAVyXKwXB74jf_hAJsfVKOS_0KzPyNRVvbcLoNXNwYM/exec";
+
+const JENIS_MAP = {
+  S1: [
+    {
+      value:'PKL',
+      label:'Praktek Kerja Lapangan (PKL)',
+      kode:'PKL',
+      hal:'Praktek Kerja Lapangan',
+      bodyLabel:'Praktek Kerja Lapangan (PKL)',
+      shortLabel:'PKL'
+    },
+    {
+      value:'MAGANG',
+      label:'Magang',
+      kode:'MAG',
+      hal:'Magang',
+      bodyLabel:'Magang',
+      shortLabel:'Magang'
+    }
+  ],
+  S2: [
+    {
+      value:'PENELITIAN',
+      label:'Penelitian',
+      kode:'PEN',
+      hal:'Penelitian',
+      bodyLabel:'Penelitian',
+      shortLabel:'Penelitian'
+    },
+    {
+      value:'PRAKTIK',
+      label:'Praktik Profesional',
+      kode:'PRA',
+      hal:'Praktik Profesional',
+      bodyLabel:'Praktik Profesional',
+      shortLabel:'Praktik Profesional'
+    }
+  ]
+};
+
+const KAPRODI_DEFAULT = {
+  S1: { nama:'', jabatan:'Kaprodi,', label:'Nama Kaprodi S1' },
+  S2: { nama:'', jabatan:'Kaprodi,', label:'Nama Kaprodi S2' }
+};
+
+const BULAN_ID = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const ROMAWI   = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+
+/* ============================================================
+   UTIL
+============================================================ */
+const $ = id => document.getElementById(id);
+
+function toast(msg, type){
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = 'show ' + (type === 'error' ? 'error' : type === 'success' ? 'success' : '');
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer = setTimeout(() => { t.className = ''; }, 3000);
+}
+
+function formatTanggalID(date){
+  return `${date.getDate()} ${BULAN_ID[date.getMonth()]} ${date.getFullYear()}`;
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+
+/* ============================================================
+   TAHUN AKADEMIK (01 Sept – 31 Agustus)
+   Sept..Des  → year + 1
+   Jan..Agust → year
+============================================================ */
+function getTahunAkademik(date){
+  const m = date.getMonth();
+  const y = date.getFullYear();
+  return m >= 8 ? y + 1 : y;
+}
+
+/* ============================================================
+   VALIDASI NIM
+   S1 : TTTT + 41 + NNN (NNN ≥ 001)
+   S2 : TTTT + 31 + NNN (NNN ≥ 001)
+============================================================ */
+function validateNIM(nim, jenjang){
+  const cleaned = (nim || '').trim();
+  if (!cleaned) return { valid:false, msg:'NIM wajib diisi.' };
+  if (!/^\d+$/.test(cleaned)) return { valid:false, msg:'NIM hanya boleh berisi angka.' };
+  if (cleaned.length !== 9) return { valid:false, msg:'NIM harus 9 digit angka. Format: TTTTKKNNN.' };
+
+  const kode = cleaned.substring(4,6);
+  const urut = parseInt(cleaned.substring(6,9), 10);
+  const tahun = parseInt(cleaned.substring(0,4), 10);
+
+  const expectedKode = (jenjang === 'S1') ? '41' : '31';
+  if (kode !== expectedKode){
+    return { valid:false, msg:`Kode prodi ${jenjang} harus "${expectedKode}", ditemukan "${kode}".` };
+  }
+  if (urut < 1){
+    return { valid:false, msg:'Nomor urut NIM dimulai dari 001.' };
+  }
+  const nowY = new Date().getFullYear();
+  if (tahun < 2000 || tahun > nowY + 1){
+    return { valid:false, msg:'Tahun pada NIM tidak wajar.' };
+  }
+  return {
+    valid:true,
+    msg:'',
+    formatted:`${cleaned.substring(0,4)} – ${cleaned.substring(4,6)} – ${cleaned.substring(6,9)}`
+  };
+}
+
+/* ============================================================
+   VALIDASI HP (max 13 angka)
+============================================================ */
+function validateHP(hp){
+  const cleaned = (hp || '').trim();
+  if (!cleaned) return { valid:false, msg:'No. HP wajib diisi.' };
+  if (!/^\d+$/.test(cleaned)) return { valid:false, msg:'No. HP hanya boleh angka.' };
+  if (cleaned.length > 13) return { valid:false, msg:'No. HP maksimal 13 angka.' };
+  if (cleaned.length < 9)  return { valid:false, msg:'No. HP minimal 9 angka.' };
+  return { valid:true, msg:'' };
+}
+
+function validateEmail(email){
+  const v = (email || '').trim();
+  if (!v) return false;
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+}
+
+/* ============================================================
+   NOMOR SURAT
+   S1 : …/{KODE}/S1/FIKOM/{ROMAWI}/{TAHUN_AKADEMIK}
+   S2 : …/{KODE}/S2/MIK-FIKOM/{ROMAWI}/{TAHUN_AKADEMIK}
+============================================================ */
+function buildNomorSuffix(jenjang, kodeJenis, tanggal){
+  const rom = ROMAWI[tanggal.getMonth()];
+  const thn = getTahunAkademik(tanggal);
+  return (jenjang === 'S1')
+    ? `${kodeJenis}/S1/FIKOM/${rom}/${thn}`
+    : `${kodeJenis}/S2/MIK-FIKOM/${rom}/${thn}`;
+}
+
+function getJenisInfo(){
+  const jenjang = $('jenjang').value;
+  const jenis = $('jenis').value;
+  return JENIS_MAP[jenjang].find(j => j.value === jenis) || JENIS_MAP[jenjang][0];
+}
+
+/* ============================================================
+   DROPDOWN JENIS
+============================================================ */
+function renderJenisOptions(){
+  const jenjang = $('jenjang').value;
+  const sel = $('jenis');
+  const prev = sel.value;
+  sel.innerHTML = '';
+  JENIS_MAP[jenjang].forEach(j => {
+    const opt = document.createElement('option');
+    opt.value = j.value;
+    opt.textContent = j.label;
+    sel.appendChild(opt);
+  });
+  if (Array.from(sel.options).some(o => o.value === prev)) sel.value = prev;
+
+  const kd = KAPRODI_DEFAULT[jenjang];
+  $('kaprodiLabel').innerHTML = escapeHtml(kd.label) + ' <span class="req">*</span>';
+  if (!$('jabatanKaprodi').value) $('jabatanKaprodi').value = kd.jabatan;
+
+  updateNomorPreview();
+}
+
+/* ============================================================
+   PREVIEW
+============================================================ */
+function updatePreview(){
+  const jenjang = $('jenjang').value;
+  const jenisInfo = getJenisInfo();
+
+  const tanggalStr = $('tanggal').value;
+  const tanggal = tanggalStr ? new Date(tanggalStr + 'T00:00:00') : new Date();
+
+  const nim = $('nim').value.trim();
+  const nimVal = validateNIM(nim, jenjang);
+  const nimFormatted = nimVal.valid ? nimVal.formatted : (nim || '-');
+
+  const hp = $('hp').value.trim();
+  const email = $('email').value.trim();
+
+  // Nomor
+  const suffix = buildNomorSuffix(jenjang, jenisInfo.kode, tanggal);
+  const nomorPreviewVal = $('nomorPreview').value;
+  if (nomorPreviewVal && nomorPreviewVal.includes('/')){
+    $('outNomor').textContent = nomorPreviewVal;
+  } else {
+    $('outNomor').textContent = '......./' + suffix;
+  }
+
+  // Hal
+  $('outHal').textContent = jenisInfo.hal;
+
+  // Tujuan
+  const tujuanRaw = $('tujuan').value.trim();
+  const tujuanLines = tujuanRaw.split('\n').map(s => s.trim()).filter(Boolean);
+  $('outTujuanLine1').textContent = tujuanLines[0] || '-';
+  $('outTujuanRest').innerHTML = tujuanLines.slice(1).map(escapeHtml).join('<br>');
+
+  // Data mahasiswa
+  $('outNama').textContent = $('nama').value.trim() || '-';
+  $('outNim').textContent = nimFormatted;
+  $('outKonsentrasi').textContent = $('konsentrasi').value.trim() || '-';
+  $('outKontak').textContent = (hp || '-') + '/' + (email || '-');
+
+  // Body
+  const durasi = $('durasi').value.trim() || 'empat (4) bulan';
+  const pMulai = $('periodeMulai').value.trim() || '-';
+  const pSelesai = $('periodeSelesai').value.trim() || '-';
+
+  $('outBody1').textContent =
+    `Mengajukan permohonan untuk melaksanakan ${jenisInfo.bodyLabel} selama ${durasi} (${pMulai} – ${pSelesai}) di Instansi yang Bapak/Ibu pimpin.`;
+  $('outBody2').textContent =
+    `Mengenai waktu pelaksanaan ${jenisInfo.shortLabel} tersebut, kami serahkan pada kebijaksanaan Bapak / Ibu.`;
+  $('outBody3').textContent =
+    `Kami berharap Bapak / Ibu dapat membantu, mengingat ${jenisInfo.shortLabel} tersebut mata kuliah wajib bagi mahasiswa kami.`;
+
+  // Tanda tangan
+  $('outTanggal').textContent = formatTanggalID(tanggal);
+  $('outJabatan').textContent = $('jabatanKaprodi').value.trim() || 'Kaprodi,';
+  $('outKaprodi').textContent = $('namaKaprodi').value.trim() || '-';
+}
+
+function updateNomorPreview(){
+  const jenjang = $('jenjang').value;
+  const jenisInfo = getJenisInfo();
+  const tanggalStr = $('tanggal').value;
+  const tanggal = tanggalStr ? new Date(tanggalStr + 'T00:00:00') : new Date();
+  $('nomorPreview').value = '......./' + buildNomorSuffix(jenjang, jenisInfo.kode, tanggal);
+}
+
+/* ============================================================
+   SCALE PREVIEW AGAR PROPORSIONAL
+============================================================ */
+function fitPreviewScale(){
+  const scaler = $('previewScaler');
+  const letter = $('letter');
+  if (!scaler || !letter) return;
+
+  scaler.style.transform = 'scale(1)';
+  scaler.style.height = '';
+  scaler.style.width = '';
+
+  const panel = document.querySelector('.preview-panel');
+  const available = panel.clientWidth - 32;
+  const letterWidth = letter.offsetWidth;
+
+  if (letterWidth > available){
+    const scale = available / letterWidth;
+    scaler.style.transform = `scale(${scale})`;
+    scaler.style.transformOrigin = 'top left';
+    scaler.style.width  = letterWidth + 'px';
+    scaler.style.height = (letter.offsetHeight * scale) + 'px';
+  }
+}
+
+/* ============================================================
+   VALIDASI FORM
+============================================================ */
+function validateForm(){
+  let ok = true;
+
+  if (!$('nama').value.trim()){ toast('Nama lengkap wajib diisi.', 'error'); return false; }
+
+  const jenjang = $('jenjang').value;
+  const nimRes = validateNIM($('nim').value, jenjang);
+  const nimEl = $('nim');
+  if (!nimRes.valid){
+    nimEl.classList.add('invalid'); nimEl.classList.remove('valid');
+    $('nimError').textContent = nimRes.msg;
+    ok = false;
+  } else {
+    nimEl.classList.add('valid'); nimEl.classList.remove('invalid');
+    $('nimError').textContent = '';
+  }
+
+  const hpRes = validateHP($('hp').value);
+  const hpEl = $('hp');
+  if (!hpRes.valid){
+    hpEl.classList.add('invalid'); hpEl.classList.remove('valid');
+    $('hpError').textContent = hpRes.msg;
+    ok = false;
+  } else {
+    hpEl.classList.add('valid'); hpEl.classList.remove('invalid');
+    $('hpError').textContent = '';
+  }
+
+  if (!validateEmail($('email').value)){ toast('Email tidak valid.', 'error'); ok = false; }
+  if (!$('konsentrasi').value.trim()){ toast('Konsentrasi wajib diisi.', 'error'); ok = false; }
+  if (!$('tujuan').value.trim()){ toast('Tujuan surat wajib diisi.', 'error'); ok = false; }
+  if (!$('periodeMulai').value.trim() || !$('periodeSelesai').value.trim()){
+    toast('Periode mulai & selesai wajib diisi.', 'error'); ok = false;
+  }
+  if (!$('namaKaprodi').value.trim()){ toast('Nama Kaprodi wajib diisi.', 'error'); ok = false; }
+
+  return ok;
+}
+
+/* ============================================================
+   GAS — AMBIL NOMOR URUT
+============================================================ */
+async function fetchNomorFromGAS(jenjang, jenisKode, tanggal){
+  try{
+    const thnAkademik = getTahunAkademik(tanggal);
+    const url = `${GAS_URL}?action=getNomor`
+      + `&jenjang=${encodeURIComponent(jenjang)}`
+      + `&jenis=${encodeURIComponent(jenisKode)}`
+      + `&tahunAkademik=${encodeURIComponent(thnAkademik)}`
+      + `&t=${Date.now()}`;
+    const res = await fetch(url, { method:'GET', redirect:'follow' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if (data && data.nomor !== undefined && data.nomor !== null){
+      return String(data.nomor).padStart(3, '0');
+    }
+    return null;
+  } catch(err){
+    console.warn('GAS fetch gagal:', err);
+    return null;
+  }
+}
+
+/* ============================================================
+   GAS — LOG (opsional)
+============================================================ */
+async function logToGAS(payload){
+  try{
+    await fetch(GAS_URL, {
+      method:'POST',
+      mode:'no-cors',
+      headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action:'log', data:payload })
+    });
+  } catch(e){ /* silent */ }
+}
+
+/* ============================================================
+   GENERATE PDF + FOLDER OTOMATIS
+============================================================ */
+async function generatePDF(){
+  if (!validateForm()) return;
+
+  const btn = $('btnGenerate');
+  const btnText = $('btnGenerateText');
+  const originalText = btnText.textContent;
+  btn.disabled = true;
+  btnText.innerHTML = '<span class="spinner"></span> Memproses...';
+
+  try{
+    const jenjang = $('jenjang').value;
+    const jenisInfo = getJenisInfo();
+    const tanggalStr = $('tanggal').value;
+    const tanggal = tanggalStr ? new Date(tanggalStr + 'T00:00:00') : new Date();
+
+    const urut = await fetchNomorFromGAS(jenjang, jenisInfo.kode, tanggal);
+
+    const suffix = buildNomorSuffix(jenjang, jenisInfo.kode, tanggal);
+    const nomorFull = urut ? `${urut}/${suffix}` : `......./${suffix}`;
+    $('nomorPreview').value = nomorFull;
+    updatePreview();
+    $('outNomor').textContent = nomorFull;
+
+    const namaSafe = ($('nama').value.trim() || 'Mahasiswa')
+      .replace(/[^\w\s-]/g,'').replace(/\s+/g,'_');
+    const nimSafe = ($('nim').value.trim() || '').replace(/\D/g,'');
+    const folder = `${jenjang}_${jenisInfo.value}`;
+    const filename = `${folder}/${nimSafe}_${namaSafe}_${jenisInfo.kode}.pdf`;
+
+    const element = $('letter');
+    const opt = {
+      margin: 0,
+      filename: filename,
+      image: { type:'jpeg', quality:0.98 },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        letterRendering: true,
+        backgroundColor: '#ffffff',
+        scrollX: 0,
+        scrollY: 0
+      },
+      jsPDF: { unit:'mm', format:'a4', orientation:'portrait' },
+      pagebreak: { mode:['avoid-all','css','legacy'] }
+    };
+    await html2pdf().set(opt).from(element).save();
+
+    toast('✅ PDF berhasil diunduh.', 'success');
+
+    logToGAS({
+      nomor: nomorFull,
+      jenjang: jenjang,
+      jenis: jenisInfo.value,
+      nama: $('nama').value.trim(),
+      nim: $('nim').value.trim(),
+      konsentrasi: $('konsentrasi').value.trim(),
+      hp: $('hp').value.trim(),
+      email: $('email').value.trim(),
+      tujuan: $('tujuan').value.trim(),
+      periode: `${$('periodeMulai').value.trim()} - ${$('periodeSelesai').value.trim()}`,
+      tanggal: formatTanggalID(tanggal)
+    }).catch(() => {});
+
+  } catch(err){
+    console.error(err);
+    toast('Gagal generate PDF: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btnText.textContent = originalText;
+  }
+}
+
+/* ============================================================
+   INIT
+============================================================ */
+function setDefaultTanggal(){
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth()+1).padStart(2,'0');
+  const dd = String(now.getDate()).padStart(2,'0');
+  $('tanggal').value = `${yyyy}-${mm}-${dd}`;
+}
+
+function bindLiveValidation(){
+  const nimEl = $('nim');
+  const hpEl = $('hp');
+
+  nimEl.addEventListener('input', () => {
+    nimEl.value = nimEl.value.replace(/\D/g,'').slice(0,9);
+    const res = validateNIM(nimEl.value, $('jenjang').value);
+    $('nimError').textContent = nimEl.value ? res.msg : '';
+    nimEl.classList.toggle('invalid', nimEl.value.length > 0 && !res.valid);
+    nimEl.classList.toggle('valid', res.valid);
+    updatePreview();
+  });
+
+  hpEl.addEventListener('input', () => {
+    hpEl.value = hpEl.value.replace(/\D/g,'').slice(0,13);
+    const res = validateHP(hpEl.value);
+    $('hpError').textContent = hpEl.value ? res.msg : '';
+    hpEl.classList.toggle('invalid', hpEl.value.length > 0 && !res.valid);
+    hpEl.classList.toggle('valid', res.valid);
+    updatePreview();
+  });
+}
+
+function init(){
+  setDefaultTanggal();
+  renderJenisOptions();
+  bindLiveValidation();
+
+  $('jenjang').addEventListener('change', () => {
+    renderJenisOptions();
+    if ($('nim').value.trim()){
+      const res = validateNIM($('nim').value, $('jenjang').value);
+      $('nimError').textContent = res.msg;
+      $('nim').classList.toggle('invalid', !res.valid);
+      $('nim').classList.toggle('valid', res.valid);
+    }
+    const kode = $('jenjang').value === 'S1' ? '41' : '31';
+    $('nimHint').innerHTML = `${$('jenjang').value} : 4 digit tahun + <b>${kode}</b> + 3 digit urut (mulai 001). Contoh: 2022<b>${kode}</b>001`;
+    updatePreview();
+  });
+
+  $('jenis').addEventListener('change', () => {
+    updateNomorPreview();
+    updatePreview();
+  });
+
+  ['nama','konsentrasi','email','tujuan','periodeMulai','periodeSelesai',
+   'durasi','tanggal','namaKaprodi','jabatanKaprodi'].forEach(id => {
+    const el = $(id);
+    el.addEventListener('input', updatePreview);
+    el.addEventListener('change', () => {
+      if (id === 'tanggal') updateNomorPreview();
+      updatePreview();
+    });
+  });
+
+  $('btnGenerate').addEventListener('click', generatePDF);
+
+  $('btnRefresh').addEventListener('click', () => {
+    updateNomorPreview();
+    updatePreview();
+    toast('Preview diperbarui.');
+  });
+
+  $('btnReset').addEventListener('click', () => {
+    if (!confirm('Reset semua data formulir?')) return;
+    document.querySelectorAll('.card input, .card select, .card textarea').forEach(el => {
+      if (el.id === 'tujuan'){
+        el.value = 'Substansi Hubungan Masyarakat\nKementerian Pendidikan Tinggi, Sains dan Teknologi\nJl. Jend. Sudirman, Pintu 1, Senayan, Gedung D\nJakarta, Indonesia 10270.';
+      } else if (el.id === 'durasi'){
+        el.value = 'empat (4) bulan';
+      } else if (el.id === 'jabatanKaprodi'){
+        el.value = 'Kaprodi,';
+      } else if (el.tagName === 'SELECT'){
+        el.selectedIndex = 0;
+      } else if (el.type !== 'button'){
+        el.value = '';
+      }
+      el.classList.remove('invalid','valid');
+    });
+    $('nimError').textContent = '';
+    $('hpError').textContent = '';
+    $('jenjang').value = 'S1';
+    setDefaultTanggal();
+    renderJenisOptions();
+    updatePreview();
+    toast('Formulir direset.');
+  });
+
+  window.addEventListener('resize', fitPreviewScale);
+
+  $('namaKaprodi').value = '';
+
+  updatePreview();
+  setTimeout(fitPreviewScale, 300);
+  setTimeout(fitPreviewScale, 800);
+  window.addEventListener('load', () => setTimeout(fitPreviewScale, 200));
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
