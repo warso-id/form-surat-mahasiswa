@@ -211,8 +211,7 @@
   }
 
   /* ================ A4 LETTER ================ */
-  /* Page: A4 210x297mm; margin: top 0.5cm, right 2cm, bottom 2cm, left 2cm
-     min-height 297mm hanya untuk tampilan preview — dihilangkan saat render PDF */
+  /* Page: A4 210x297mm; margin: top 0.5cm, right 2cm, bottom 2cm, left 2cm */
   #letter{
     width:210mm;
     min-height:297mm;
@@ -224,6 +223,12 @@
     line-height:1.5;
     box-shadow:0 4px 22px rgba(0,0,0,.18);
     position:relative;
+  }
+
+  /* Kelas khusus yang dipakai saat render PDF (clone) — matikan min-height */
+  #letter.pdf-render{
+    min-height:0 !important;
+    box-shadow:none !important;
   }
 
   /* Anti-orphan: hindari konten terpotong di tengah halaman PDF */
@@ -479,7 +484,7 @@ Jakarta, Indonesia 10270.</textarea>
       <div id="letter">
 
         <!-- ================= KOP SURAT (GAMBAR) ================= -->
-        <img class="kop-img" src="https://i.imgur.com/92EDVAN.png" alt="Kop Surat FIKOM">
+        <img class="kop-img" src="https://i.imgur.com/92EDVAN.png" alt="Kop Surat FIKOM" crossorigin="anonymous">
 
         <!-- ================= ISI SURAT ================= -->
         <div class="letter-body">
@@ -711,7 +716,7 @@ function validateEmail(email){
 ============================================================ */
 function buildNomorSuffix(jenjang, kodeJenis, tanggal){
   const rom = ROMAWI[tanggal.getMonth()];
-  const thn = tanggal.getFullYear(); // ← tahun masehi, bukan TA
+  const thn = tanggal.getFullYear();
   return (jenjang === 'S1')
     ? `${kodeJenis}/S1/FIKOM/${rom}/${thn}`
     : `${kodeJenis}/S2/MIK-FIKOM/${rom}/${thn}`;
@@ -881,7 +886,6 @@ function validateForm(){
 
 /* ============================================================
    GAS — AMBIL NOMOR URUT
-   (kirim tahunAkademik untuk reset counter; tahun di nomor tetap masehi)
 ============================================================ */
 async function fetchNomorFromGAS(jenjang, jenisKode, tanggal){
   try{
@@ -906,8 +910,6 @@ async function fetchNomorFromGAS(jenjang, jenisKode, tanggal){
 
 /* ============================================================
    GAS — UPLOAD PDF + SIMPAN LOG KE SHEET
-   Kirim base64 PDF + metadata → GAS simpan file ke Drive,
-   dapatkan link, tulis link & metadata ke sheet "Log".
 ============================================================ */
 async function uploadPdfToGAS(payload, pdfDataUri, filename){
   try{
@@ -930,11 +932,55 @@ async function uploadPdfToGAS(payload, pdfDataUri, filename){
 }
 
 /* ============================================================
-   GENERATE PDF + FOLDER OTOMATIS + UPLOAD & SIMPAN DB
-   ─────────────────────────────────────────────────────────────
-   PERBAIKAN HALAMAN:
-   - Hapus `min-height` sementara → halaman kedua blank otomatis hilang
-   - Jika konten panjang, html2pdf mem-paginate otomatis ke halaman 2, 3, dst.
+   UTIL — TUNGGU SEMUA IMAGE SELESAI DIMUAT
+   (mencegah rendering aneh / blank saat gambar belum siap)
+============================================================ */
+function waitForImages(root){
+  const imgs = Array.from(root.querySelectorAll('img'));
+  if (imgs.length === 0) return Promise.resolve();
+
+  return Promise.all(imgs.map(img => {
+    if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+    return new Promise(resolve => {
+      const done = () => resolve();
+      img.addEventListener('load', done, { once:true });
+      img.addEventListener('error', done, { once:true });
+      // Safety timeout — jika gambar lambat, lanjut saja (maks 8 detik)
+      setTimeout(done, 8000);
+    });
+  }));
+}
+
+/* ============================================================
+   BUAT CLONE KHUSUS UNTUK RENDER PDF
+   - Clone ditaruh off-screen
+   - min-height dimatikan → konten pendek = 1 halaman (tanpa halaman blank)
+   - Konten panjang → html2pdf paginate otomatis ke halaman 2, 3, dst.
+============================================================ */
+function makePdfClone(){
+  const original = $('letter');
+  const clone = original.cloneNode(true);
+
+  // Reset atribut ID agar tidak duplikat
+  clone.removeAttribute('id');
+
+  // Set style khusus render PDF
+  clone.classList.add('pdf-render');
+  clone.style.position   = 'fixed';
+  clone.style.left       = '-10000px';   // off-screen
+  clone.style.top        = '0';
+  clone.style.minHeight  = '0';          // ★ kunci: hilangkan min-height A4
+  clone.style.boxShadow  = 'none';
+  clone.style.margin     = '0';
+  clone.style.zIndex     = '-1';
+  clone.style.pointerEvents = 'none';
+
+  document.body.appendChild(clone);
+  return clone;
+}
+
+/* ============================================================
+   GENERATE PDF + AUTO-PAGINATE + UPLOAD & SIMPAN DB
 ============================================================ */
 async function generatePDF(){
   if (!validateForm()) return;
@@ -945,8 +991,7 @@ async function generatePDF(){
   btn.disabled = true;
   btnText.innerHTML = '<span class="spinner"></span> Memproses...';
 
-  const element = $('letter');
-  const prevMinHeight = element.style.minHeight;
+  let clone = null;
 
   try{
     const jenjang = $('jenjang').value;
@@ -972,12 +1017,13 @@ async function generatePDF(){
     const filenameWithFolder = `${folder}/${nimSafe}_${namaSafe}_${jenisInfo.kode}.pdf`;
     const filenameOnly = `${nimSafe}_${namaSafe}_${jenisInfo.kode}.pdf`;
 
-    // 4. === PERBAIKAN HALAMAN BLANK ===
-    //    Hapus min-height 297mm sementara agar konten pendek = 1 halaman saja.
-    //    Konten panjang tetap otomatis di-paginate ke halaman berikutnya.
-    element.style.minHeight = '0';
+    // 4. Buat CLONE khusus render → preview asli tidak terganggu
+    clone = makePdfClone();
 
-    // 5. Render PDF → dapatkan data URI (base64)
+    // 5. Tunggu semua gambar (termasuk kop) selesai dimuat di clone
+    await waitForImages(clone);
+
+    // 6. Render PDF dari clone
     const opt = {
       margin: 0,
       filename: filenameWithFolder,
@@ -986,20 +1032,33 @@ async function generatePDF(){
         scale: 2,
         useCORS: true,
         allowTaint: true,
-        letterRendering: true,
         backgroundColor: '#ffffff',
+        logging: false,
         scrollX: 0,
         scrollY: 0,
-        windowWidth: element.scrollWidth,
-        windowHeight: element.scrollHeight
+        windowWidth: 794,             // A4 @96dpi
+        windowHeight: clone.scrollHeight
       },
-      jsPDF: { unit:'mm', format:'a4', orientation:'portrait' },
-      pagebreak: { mode:['css','legacy'], avoid:['p','.letter-to','.student-table','.signature-wrap','.letter-head-table'] }
+      jsPDF: {
+        unit: 'mm',
+        format: 'a4',
+        orientation: 'portrait',
+        compress: true
+      },
+      // mode 'css' + 'legacy' → mengikuti aturan page-break-inside: avoid
+      // 'avoid-all' DIHINDARI karena bisa memaksa elemen ke halaman baru.
+      pagebreak: {
+        mode: ['css', 'legacy'],
+        avoid: ['p', '.letter-to', '.student-table', '.signature-wrap', '.letter-head-table']
+      }
     };
 
-    const pdfDataUri = await html2pdf().set(opt).from(element).outputPdf('datauristring');
+    const pdfDataUri = await html2pdf()
+      .set(opt)
+      .from(clone)
+      .outputPdf('datauristring');
 
-    // 6. Trigger download manual
+    // 7. Trigger download manual
     const a = document.createElement('a');
     a.href = pdfDataUri;
     a.download = filenameOnly;
@@ -1009,10 +1068,9 @@ async function generatePDF(){
 
     toast('✅ PDF berhasil diunduh. Mengunggah ke Drive...', 'success');
 
-    // 7. Upload PDF ke GAS → GAS simpan ke Drive + log ke sheet
-    //    Hitung Tahun Akademik (01 Sept – 31 Agustus) untuk auto-folder
-    const ta = getTahunAkademik(tanggal);              // mis. 2026
-    const taLabel = `${ta - 1}-${ta}`;                 // mis. "2025-2026"
+    // 8. Upload PDF ke GAS → GAS simpan ke Drive + log ke sheet
+    const ta = getTahunAkademik(tanggal);
+    const taLabel = `${ta - 1}-${ta}`;
 
     const payload = {
       nomor: nomorFull,
@@ -1026,8 +1084,8 @@ async function generatePDF(){
       tujuan: $('tujuan').value.trim(),
       periode: `${$('periodeMulai').value.trim()} - ${$('periodeSelesai').value.trim()}`,
       tanggal: formatTanggalID(tanggal),
-      tahunAkademik: ta,            // ← untuk auto-folder
-      tahunAkademikLabel: taLabel   // ← nama folder, mis. "2025-2026"
+      tahunAkademik: ta,
+      tahunAkademikLabel: taLabel
     };
     const uploaded = await uploadPdfToGAS(payload, pdfDataUri, filenameOnly);
     if (uploaded){
@@ -1040,8 +1098,10 @@ async function generatePDF(){
     console.error(err);
     toast('Gagal generate PDF: ' + err.message, 'error');
   } finally {
-    // 8. Kembalikan min-height untuk preview tetap terlihat seperti halaman A4
-    element.style.minHeight = prevMinHeight || '';
+    // 9. Bersihkan clone
+    if (clone && clone.parentNode){
+      clone.parentNode.removeChild(clone);
+    }
     btn.disabled = false;
     btnText.textContent = originalText;
   }
