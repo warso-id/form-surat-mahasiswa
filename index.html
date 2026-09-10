@@ -196,107 +196,108 @@
     transition:transform .2s ease;
   }
 
-  /* ==================================================
-     A4 LETTER — Format sesuai spesifikasi
-     - padding atas 0,5cm (jarak ke kop)
-     - padding sisi 2cm (margin tulisan)
-     - padding bawah 2cm
-  ================================================== */
+  /* ============================================================
+     A4 LETTER
+     Padding halaman:
+       top    = 0.5cm  (jarak atas ke kop)
+       right  = 1cm    (right indent body)
+       bottom = 2cm
+       left   = 2cm    (margin kertas kiri)
+     Body content (Yth, paragraf) tambah indent 1.5cm
+     → total left dari tepi kertas = 3.5cm
+  ============================================================ */
   #letter{
     width:210mm;
     min-height:297mm;
     background:#fff;
-    padding:0.5cm 2cm 2cm 2cm;
+    padding:0.5cm 1cm 2cm 2cm;
     font-family:'Times New Roman',Times,serif;
-    font-size:12pt;
+    font-size:11pt;
     color:#000;
     line-height:1.5;
     box-shadow:0 4px 22px rgba(0,0,0,.18);
     position:relative;
   }
 
-  /* ---- Kop surat : gambar, tinggi 3cm, lebar = margin tulisan (170mm) ---- */
+  /* ---- Kop surat: gambar saja, 0.5cm dari atas, tinggi 3.5cm ---- */
   .kop-img{
     display:block;
-    width:100%;
-    height:3cm;
+    width:100%;          /* full lebar area cetak = 207mm */
+    height:3.5cm;
     object-fit:fill;
-    margin:0 0 0.4cm 0;
+    margin:0 0 0.5cm 0;
   }
 
-  /* ---- Nomor / Lamp. / Hal : rata kiri (normal), Body Text ---- */
-  .nomor-block{
-    margin:0 0 12pt 0;
-    line-height:1.5;
-  }
-  .nomor-block table{
+  /* ---- Nomor / Lamp. / Hal : rata kiri di margin (2cm dari kertas) ---- */
+  .letter-head-table{
     border-collapse:collapse;
-    font-size:12pt;
+    font-size:11pt;
     line-height:1.5;
+    margin:0 0 12pt 0;
   }
-  .nomor-block td{
+  .letter-head-table td{
     padding:0;
     vertical-align:top;
   }
-  .nomor-block td.label{width:2.2cm}
-  .nomor-block td.colon{width:0.6cm}
+  .letter-head-table td.label{width:1.2cm}
+  .letter-head-table td.colon{width:0.3cm}
 
-  /* ---- Body content :
-         Left = 3cm dari tepi kiri halaman
-         (padding #letter 2cm + margin-left 1cm)
-         Right = 1cm dari margin tulisan (menjaga proporsi)
-  ---- */
+  /* ---- Body content: indent left 3.5cm dari tepi kertas (1.5cm dari margin) ---- */
   .letter-content{
-    margin-left:1cm;
-    margin-right:1cm;
+    margin-left:1.5cm;    /* 2cm (page) + 1.5cm = 3.5cm dari tepi kertas */
+    /* right sudah otomatis 1cm dari padding halaman */
   }
 
-  .letter-content p{
-    margin:12pt 0;
+  /* Yth block */
+  .letter-to{
+    font-size:11pt;
     line-height:1.5;
+    margin:12pt 0;
+  }
+  .letter-to div{display:block}
+
+  /* Paragraf: spacing 12pt before/after, line-height 1.5, special none */
+  p{
+    font-size:11pt;
+    margin:12pt 0;
     text-align:justify;
-    font-size:12pt;
-  }
-
-  /* Blok tujuan (Yth. ...) */
-  .tujuan{
-    margin:12pt 0;
     line-height:1.5;
-    font-size:12pt;
-  }
-  .tujuan .to-rest{
-    /* sudah otomatis sejajar karena semua di dalam .letter-content */
+    text-indent:0;
   }
 
-  /* Tabel data mahasiswa — indentasi tambahan dari tepi kiri body */
+  /* Tabel mahasiswa: indent 1.27cm dari body content */
   .student-table{
     border-collapse:collapse;
     margin:12pt 0 12pt 1.27cm;
-    font-size:12pt;
+    font-size:11pt;
     line-height:1.5;
   }
   .student-table td{
-    padding:1.5px 0;
+    padding:0;
     vertical-align:top;
-    line-height:1.5;
   }
-  .student-table td:nth-child(1){width:3cm}
-  .student-table td:nth-child(2){width:0.5cm}
+  .student-table td:nth-child(1){width:3.2cm}
+  .student-table td:nth-child(2){width:0.4cm}
 
-  /* ---- Tanda tangan : blok di kanan ---- */
-  .signature{
+  /* Signature: rata kanan */
+  .signature-wrap{
     margin-top:24pt;
-    width:8cm;
-    margin-left:auto;
-    margin-right:0;
+    overflow:hidden;
+  }
+  .signature{
+    float:right;
+    width:7cm;
+    text-align:left;
+    font-size:11pt;
     line-height:1.5;
-    font-size:12pt;
-    clear:both;
   }
   .signature .place-date{margin-bottom:0}
   .signature .jabatan{margin-bottom:0}
-  .signature .sig-space{height:64pt}
-  .signature .name{margin-bottom:0}
+  .signature .sig-space{height:64px}
+  .signature .name{
+    font-weight:700;
+    text-decoration:underline;
+  }
 
   /* ================ TOAST ================ */
   #toast{
@@ -431,8 +432,8 @@ Jakarta, Indonesia 10270.</textarea>
         <input type="text" id="namaKaprodi" placeholder="Nama Kaprodi" autocomplete="off">
       </div>
       <div class="form-group">
-        <label>Gelar / Jabatan Kaprodi</label>
-        <input type="text" id="jabatanKaprodi" value="Kaprodi," placeholder="Kaprodi," autocomplete="off">
+        <label>NIP Kaprodi <span class="req">*</span></label>
+        <input type="text" id="nipKaprodi" placeholder="NIP" autocomplete="off">
       </div>
     </div>
 
@@ -457,36 +458,35 @@ Jakarta, Indonesia 10270.</textarea>
     <div class="preview-scaler" id="previewScaler">
       <div id="letter">
 
-        <!-- KOP SURAT : GAMBAR SAJA — tinggi 3cm, 0,5cm dari atas halaman -->
+        <!-- ================= KOP SURAT (GAMBAR) ================= -->
         <img class="kop-img" src="https://i.imgur.com/92EDVAN.png" alt="Kop Surat FIKOM">
 
-        <!-- NOMOR / LAMP. / HAL : rata kiri (Body Text) -->
-        <div class="nomor-block">
-          <table>
-            <tr>
-              <td class="label">Nomor</td>
-              <td class="colon">:</td>
-              <td id="outNomor">......./PKL/S1/FIKOM/IX/2026</td>
-            </tr>
-            <tr>
-              <td class="label">Lamp.</td>
-              <td class="colon">:</td>
-              <td>-</td>
-            </tr>
-            <tr>
-              <td class="label">Hal</td>
-              <td class="colon">:</td>
-              <td id="outHal">Praktek Kerja Lapangan</td>
-            </tr>
-          </table>
-        </div>
+        <!-- ================= NOMOR / LAMP / HAL (rata kiri) ================= -->
+        <table class="letter-head-table">
+          <tr>
+            <td class="label">Nomor</td>
+            <td class="colon">:</td>
+            <td id="outNomor">......./PKL/S1/FIKOM/IX/2026</td>
+          </tr>
+          <tr>
+            <td class="label">Lamp.</td>
+            <td class="colon">:</td>
+            <td>-</td>
+          </tr>
+          <tr>
+            <td class="label">Hal</td>
+            <td class="colon">:</td>
+            <td id="outHal">Praktek Kerja Lapangan</td>
+          </tr>
+        </table>
 
-        <!-- ISI SURAT : Left = 3cm, Right = 1cm, spacing 12pt/12pt, line 1.5 -->
+        <!-- ================= BODY (indent left 3.5cm dari tepi kertas) ================= -->
         <div class="letter-content">
 
-          <div class="tujuan">
+          <!-- Yth. — lurus dengan nilai "Praktek Kerja Lapangan" -->
+          <div class="letter-to">
             <div>Yth. <span id="outTujuanLine1">Substansi Hubungan Masyarakat</span></div>
-            <div class="to-rest" id="outTujuanRest">
+            <div id="outTujuanRest">
               Kementerian Pendidikan Tinggi, Sains dan Teknologi<br>
               Jl. Jend. Sudirman, Pintu 1, Senayan, Gedung D<br>
               Jakarta, Indonesia 10270.
@@ -516,19 +516,20 @@ Jakarta, Indonesia 10270.</textarea>
             Kami berharap Bapak / Ibu dapat membantu, mengingat PKL tersebut mata kuliah wajib bagi mahasiswa kami.
           </p>
 
-          <p>
-            Demikian atas perhatian dan kerjasamanya kami sampaikan terima kasih.
-          </p>
+          <p>Demikian atas perhatian dan kerjasamanya kami sampaikan terima kasih.</p>
 
-          <!-- TANDA TANGAN : di kanan -->
-          <div class="signature">
-            <div class="place-date">Jakarta, <span id="outTanggal">-</span></div>
-            <div class="jabatan" id="outJabatan">Kaprodi,</div>
-            <div class="sig-space"></div>
-            <div class="name" id="outKaprodi">-</div>
+          <!-- Tanda tangan (rata kanan) -->
+          <div class="signature-wrap">
+            <div class="signature">
+              <div class="place-date">Jakarta, <span id="outTanggal">-</span></div>
+              <div class="jabatan" id="outJabatan">Kaprodi S1</div>
+              <div class="sig-space"></div>
+              <div class="name" id="outKaprodi">-</div>
+            </div>
           </div>
 
         </div>
+
       </div>
     </div>
   </div>
@@ -583,8 +584,8 @@ const JENIS_MAP = {
 };
 
 const KAPRODI_DEFAULT = {
-  S1: { nama:'', jabatan:'Kaprodi,', label:'Nama Kaprodi S1' },
-  S2: { nama:'', jabatan:'Kaprodi,', label:'Nama Kaprodi S2' }
+  S1: { nama:'', nip:'', label:'Nama Kaprodi S1' },
+  S2: { nama:'', nip:'', label:'Nama Kaprodi S2' }
 };
 
 const BULAN_ID = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
@@ -615,11 +616,9 @@ function escapeHtml(s){
 
 /* ============================================================
    TAHUN AKADEMIK (01 Sept – 31 Agustus)
-   Sept..Des  → year + 1
-   Jan..Agust → year
 ============================================================ */
 function getTahunAkademik(date){
-  const m = date.getMonth();
+  const m = date.getMonth(); // 0 = Jan, 8 = Sept
   const y = date.getFullYear();
   return m >= 8 ? y + 1 : y;
 }
@@ -712,7 +711,8 @@ function renderJenisOptions(){
 
   const kd = KAPRODI_DEFAULT[jenjang];
   $('kaprodiLabel').innerHTML = escapeHtml(kd.label) + ' <span class="req">*</span>';
-  if (!$('jabatanKaprodi').value) $('jabatanKaprodi').value = kd.jabatan;
+  if (!$('namaKaprodi').value) $('namaKaprodi').value = kd.nama;
+  if (!$('nipKaprodi').value) $('nipKaprodi').value = kd.nip;
 
   updateNomorPreview();
 }
@@ -772,7 +772,7 @@ function updatePreview(){
 
   // Tanda tangan
   $('outTanggal').textContent = formatTanggalID(tanggal);
-  $('outJabatan').textContent = $('jabatanKaprodi').value.trim() || 'Kaprodi,';
+  $('outJabatan').textContent = (jenjang === 'S1') ? 'Kaprodi S1' : 'Kaprodi S2';
   $('outKaprodi').textContent = $('namaKaprodi').value.trim() || '-';
 }
 
@@ -797,8 +797,8 @@ function fitPreviewScale(){
   scaler.style.width = '';
 
   const panel = document.querySelector('.preview-panel');
-  const available = panel.clientWidth - 32;
-  const letterWidth = letter.offsetWidth;
+  const available = panel.clientWidth - 32; // padding kiri/kanan
+  const letterWidth = letter.offsetWidth;   // ≈ 794px (210mm)
 
   if (letterWidth > available){
     const scale = available / letterWidth;
@@ -876,9 +876,9 @@ async function fetchNomorFromGAS(jenjang, jenisKode, tanggal){
 }
 
 /* ============================================================
-   GAS — LOG (opsional)
+   GAS — SIMPAN KE DATABASE (Log)
 ============================================================ */
-async function logToGAS(payload){
+async function saveToDatabase(payload){
   try{
     await fetch(GAS_URL, {
       method:'POST',
@@ -886,11 +886,15 @@ async function logToGAS(payload){
       headers:{ 'Content-Type':'text/plain;charset=utf-8' },
       body: JSON.stringify({ action:'log', data:payload })
     });
-  } catch(e){ /* silent */ }
+    return true;
+  } catch(e){
+    console.warn('Save to database gagal:', e);
+    return false;
+  }
 }
 
 /* ============================================================
-   GENERATE PDF + FOLDER OTOMATIS
+   GENERATE PDF + FOLDER OTOMATIS + SIMPAN DB
 ============================================================ */
 async function generatePDF(){
   if (!validateForm()) return;
@@ -907,20 +911,24 @@ async function generatePDF(){
     const tanggalStr = $('tanggal').value;
     const tanggal = tanggalStr ? new Date(tanggalStr + 'T00:00:00') : new Date();
 
+    // 1. Ambil nomor urut dari GAS
     const urut = await fetchNomorFromGAS(jenjang, jenisInfo.kode, tanggal);
 
+    // 2. Susun nomor lengkap
     const suffix = buildNomorSuffix(jenjang, jenisInfo.kode, tanggal);
     const nomorFull = urut ? `${urut}/${suffix}` : `......./${suffix}`;
     $('nomorPreview').value = nomorFull;
     updatePreview();
     $('outNomor').textContent = nomorFull;
 
+    // 3. Nama file + folder otomatis
     const namaSafe = ($('nama').value.trim() || 'Mahasiswa')
       .replace(/[^\w\s-]/g,'').replace(/\s+/g,'_');
     const nimSafe = ($('nim').value.trim() || '').replace(/\D/g,'');
     const folder = `${jenjang}_${jenisInfo.value}`;
     const filename = `${folder}/${nimSafe}_${namaSafe}_${jenisInfo.kode}.pdf`;
 
+    // 4. Render PDF
     const element = $('letter');
     const opt = {
       margin: 0,
@@ -942,7 +950,8 @@ async function generatePDF(){
 
     toast('✅ PDF berhasil diunduh.', 'success');
 
-    logToGAS({
+    // 5. Simpan ke database (Google Sheets) — tidak blocking
+    const payload = {
       nomor: nomorFull,
       jenjang: jenjang,
       jenis: jenisInfo.value,
@@ -954,7 +963,8 @@ async function generatePDF(){
       tujuan: $('tujuan').value.trim(),
       periode: `${$('periodeMulai').value.trim()} - ${$('periodeSelesai').value.trim()}`,
       tanggal: formatTanggalID(tanggal)
-    }).catch(() => {});
+    };
+    saveToDatabase(payload);
 
   } catch(err){
     console.error(err);
@@ -1023,7 +1033,7 @@ function init(){
   });
 
   ['nama','konsentrasi','email','tujuan','periodeMulai','periodeSelesai',
-   'durasi','tanggal','namaKaprodi','jabatanKaprodi'].forEach(id => {
+   'durasi','tanggal','namaKaprodi'].forEach(id => {
     const el = $(id);
     el.addEventListener('input', updatePreview);
     el.addEventListener('change', () => {
@@ -1047,8 +1057,6 @@ function init(){
         el.value = 'Substansi Hubungan Masyarakat\nKementerian Pendidikan Tinggi, Sains dan Teknologi\nJl. Jend. Sudirman, Pintu 1, Senayan, Gedung D\nJakarta, Indonesia 10270.';
       } else if (el.id === 'durasi'){
         el.value = 'empat (4) bulan';
-      } else if (el.id === 'jabatanKaprodi'){
-        el.value = 'Kaprodi,';
       } else if (el.tagName === 'SELECT'){
         el.selectedIndex = 0;
       } else if (el.type !== 'button'){
@@ -1067,7 +1075,9 @@ function init(){
 
   window.addEventListener('resize', fitPreviewScale);
 
+  // Reset Kaprodi (kosong — silakan isi manual)
   $('namaKaprodi').value = '';
+  $('nipKaprodi').value = '';
 
   updatePreview();
   setTimeout(fitPreviewScale, 300);
