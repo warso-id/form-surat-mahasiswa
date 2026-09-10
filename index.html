@@ -35,9 +35,23 @@
     padding:18px 20px;
     text-align:center;
     box-shadow:0 2px 10px rgba(0,0,0,.15);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
   }
-  .app-header h1{font-size:19px;font-weight:700;letter-spacing:.3px}
-  .app-header p{font-size:12.5px;opacity:.85;margin-top:4px}
+  .app-header h1{
+    font-size:19px;
+    font-weight:700;
+    letter-spacing:.3px;
+    text-align:center;
+  }
+  .app-header p{
+    font-size:12.5px;
+    opacity:.85;
+    margin-top:4px;
+    text-align:center;
+  }
 
   /* ================ LAYOUT ================ */
   .container{
@@ -434,7 +448,7 @@ Jakarta, Indonesia 10270.</textarea>
     <div class="form-group">
       <label>Nomor Surat (otomatis)</label>
       <input type="text" id="nomorPreview" readonly>
-      <div class="hint">Nomor digenerate otomatis dari server. Urut dimulai dari <b>001</b> tiap <b>Tahun Akademik (01 Sept – 31 Agustus)</b>, dikelompokkan per jenjang &amp; jenis.</div>
+      <div class="hint">Nomor digenerate otomatis dari server. Urut <b>reset ke 001 tiap Tahun Akademik (01 Sept – 31 Agustus)</b>, sedangkan tahun pada format mengikuti tahun masehi (per tahun nasional).</div>
     </div>
 
     <button type="button" class="btn btn-primary btn-block" id="btnGenerate">
@@ -615,6 +629,7 @@ function escapeHtml(s){
 
 /* ============================================================
    TAHUN AKADEMIK (01 Sept – 31 Agustus)
+   Dipakai untuk RESET counter nomor urut di GAS.
 ============================================================ */
 function getTahunAkademik(date){
   const m = date.getMonth(); // 0 = Jan, 8 = Sept
@@ -675,12 +690,16 @@ function validateEmail(email){
 
 /* ============================================================
    NOMOR SURAT
-   S1 : …/{KODE}/S1/FIKOM/{ROMAWI}/{TAHUN_AKADEMIK}
-   S2 : …/{KODE}/S2/MIK-FIKOM/{ROMAWI}/{TAHUN_AKADEMIK}
+   S1 : …/{KODE}/S1/FIKOM/{ROMAWI}/{TAHUN_MASEHI}
+   S2 : …/{KODE}/S2/MIK-FIKOM/{ROMAWI}/{TAHUN_MASEHI}
+
+   → Bulan = bulan tanggal surat (Romawi)
+   → Tahun = TAHUN MASEHI (per tahun nasional)
+   → Counter reset ke 001 tiap Tahun Akademik (dihandle di GAS)
 ============================================================ */
 function buildNomorSuffix(jenjang, kodeJenis, tanggal){
   const rom = ROMAWI[tanggal.getMonth()];
-  const thn = getTahunAkademik(tanggal);
+  const thn = tanggal.getFullYear(); // ← tahun masehi, bukan TA
   return (jenjang === 'S1')
     ? `${kodeJenis}/S1/FIKOM/${rom}/${thn}`
     : `${kodeJenis}/S2/MIK-FIKOM/${rom}/${thn}`;
@@ -850,6 +869,7 @@ function validateForm(){
 
 /* ============================================================
    GAS — AMBIL NOMOR URUT
+   (kirim tahunAkademik untuk reset counter; tahun di nomor tetap masehi)
 ============================================================ */
 async function fetchNomorFromGAS(jenjang, jenisKode, tanggal){
   try{
@@ -873,25 +893,32 @@ async function fetchNomorFromGAS(jenjang, jenisKode, tanggal){
 }
 
 /* ============================================================
-   GAS — SIMPAN KE DATABASE (Log)
+   GAS — UPLOAD PDF + SIMPAN LOG KE SHEET
+   Kirim base64 PDF + metadata → GAS simpan file ke Drive,
+   dapatkan link, tulis link & metadata ke sheet "Log".
 ============================================================ */
-async function saveToDatabase(payload){
+async function uploadPdfToGAS(payload, pdfDataUri, filename){
   try{
     await fetch(GAS_URL, {
       method:'POST',
       mode:'no-cors',
       headers:{ 'Content-Type':'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action:'log', data:payload })
+      body: JSON.stringify({
+        action:'uploadPdf',
+        data: payload,
+        pdf: pdfDataUri,
+        filename: filename
+      })
     });
     return true;
   } catch(e){
-    console.warn('Save to database gagal:', e);
+    console.warn('Upload PDF ke GAS gagal:', e);
     return false;
   }
 }
 
 /* ============================================================
-   GENERATE PDF + FOLDER OTOMATIS + SIMPAN DB
+   GENERATE PDF + FOLDER OTOMATIS + UPLOAD & SIMPAN DB
 ============================================================ */
 async function generatePDF(){
   if (!validateForm()) return;
@@ -923,13 +950,14 @@ async function generatePDF(){
       .replace(/[^\w\s-]/g,'').replace(/\s+/g,'_');
     const nimSafe = ($('nim').value.trim() || '').replace(/\D/g,'');
     const folder = `${jenjang}_${jenisInfo.value}`;
-    const filename = `${folder}/${nimSafe}_${namaSafe}_${jenisInfo.kode}.pdf`;
+    const filenameWithFolder = `${folder}/${nimSafe}_${namaSafe}_${jenisInfo.kode}.pdf`;
+    const filenameOnly = `${nimSafe}_${namaSafe}_${jenisInfo.kode}.pdf`;
 
-    // 4. Render PDF
+    // 4. Render PDF → dapatkan data URI (base64)
     const element = $('letter');
     const opt = {
       margin: 0,
-      filename: filename,
+      filename: filenameWithFolder,
       image: { type:'jpeg', quality:0.98 },
       html2canvas: {
         scale: 2,
@@ -943,11 +971,20 @@ async function generatePDF(){
       jsPDF: { unit:'mm', format:'a4', orientation:'portrait' },
       pagebreak: { mode:['avoid-all','css','legacy'] }
     };
-    await html2pdf().set(opt).from(element).save();
 
-    toast('✅ PDF berhasil diunduh & data tersimpan.', 'success');
+    const pdfDataUri = await html2pdf().set(opt).from(element).outputPdf('datauristring');
 
-    // 5. Simpan ke database (Google Sheets)
+    // 5. Trigger download manual
+    const a = document.createElement('a');
+    a.href = pdfDataUri;
+    a.download = filenameOnly;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    toast('✅ PDF berhasil diunduh. Mengunggah ke Drive...', 'success');
+
+    // 6. Upload PDF ke GAS → GAS simpan ke Drive + log ke sheet
     const payload = {
       nomor: nomorFull,
       jenjang: jenjang,
@@ -961,7 +998,12 @@ async function generatePDF(){
       periode: `${$('periodeMulai').value.trim()} - ${$('periodeSelesai').value.trim()}`,
       tanggal: formatTanggalID(tanggal)
     };
-    saveToDatabase(payload);
+    const uploaded = await uploadPdfToGAS(payload, pdfDataUri, filenameOnly);
+    if (uploaded){
+      toast('✅ PDF tersimpan di Drive & sheet.', 'success');
+    } else {
+      toast('⚠️ PDF diunduh, tapi gagal tersimpan di Drive.', 'error');
+    }
 
   } catch(err){
     console.error(err);
