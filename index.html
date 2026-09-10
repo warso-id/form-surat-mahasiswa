@@ -197,12 +197,12 @@
   }
 
   /* ================ A4 LETTER ================ */
-  /* Page: A4 210x297mm; margin: top 0.5cm, right 1cm, bottom 2cm, left 2cm */
+  /* Page: A4 210x297mm; margin: top 0.5cm, right 2cm, bottom 2cm, left 2cm */
   #letter{
     width:210mm;
     min-height:297mm;
     background:#fff;
-    padding:0.5cm 1cm 2cm 2cm;
+    padding:0.5cm 2cm 2cm 2cm;
     font-family:'Times New Roman',Times,serif;
     font-size:11pt;
     color:#000;
@@ -214,7 +214,7 @@
   /* ---- Kop surat: gambar saja, 0.5cm dari atas, tinggi 3.5cm, lebar = margin tulisan ---- */
   .kop-img{
     display:block;
-    width:100%;         /* = 210 - 2 - 1 = 207mm */
+    width:100%;         /* = 210 - 2 - 2 = 206mm */
     height:3.5cm;
     object-fit:fill;
     margin:0 0 0.5cm 0;
@@ -243,7 +243,7 @@
   .letter-head-table td.colon{width:0.5cm}
   /* value column starts at 2.6cm → body indent 2.6cm */
 
-  /* Body content: indent 2.6cm — lurus dengan nilai "Praktek Kerja Lapangan" */
+  /* Body content: indent 2.6cm (lurus dengan nilai "Praktek Kerja Lapangan") */
   .letter-content{
     margin-left:2.6cm;
   }
