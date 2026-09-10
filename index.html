@@ -196,16 +196,8 @@
     transition:transform .2s ease;
   }
 
-  /* ============================================================
-     A4 LETTER
-     Padding halaman:
-       top    = 0.5cm  (jarak atas ke kop)
-       right  = 1cm    (right indent body)
-       bottom = 2cm
-       left   = 2cm    (margin kertas kiri)
-     Body content (Yth, paragraf) tambah indent 1.5cm
-     → total left dari tepi kertas = 3.5cm
-  ============================================================ */
+  /* ================ A4 LETTER ================ */
+  /* Page: A4 210x297mm; margin: top 0.5cm, right 1cm, bottom 2cm, left 2cm */
   #letter{
     width:210mm;
     min-height:297mm;
@@ -219,53 +211,60 @@
     position:relative;
   }
 
-  /* ---- Kop surat: gambar saja, 0.5cm dari atas, tinggi 3.5cm ---- */
+  /* ---- Kop surat: gambar saja, 0.5cm dari atas, tinggi 3.5cm, lebar = margin tulisan ---- */
   .kop-img{
     display:block;
-    width:100%;          /* full lebar area cetak = 207mm */
+    width:100%;         /* = 210 - 2 - 1 = 207mm */
     height:3.5cm;
     object-fit:fill;
     margin:0 0 0.5cm 0;
   }
 
-  /* ---- Nomor / Lamp. / Hal : rata kiri di margin (2cm dari kertas) ---- */
+  /* ---- Body: Nomor/Lamp/Hal di margin, body di-indent 3.5cm ---- */
+  .letter-body{
+    /* no extra padding */
+  }
+
+  /* Nomor/Lamp/Hal — rata kiri di margin */
   .letter-head-table{
     border-collapse:collapse;
     font-size:11pt;
-    line-height:1.5;
     margin:0 0 12pt 0;
+    line-height:1.5;
+    table-layout:fixed;
+    width:100%;
   }
   .letter-head-table td{
     padding:0;
     vertical-align:top;
+    line-height:1.5;
   }
-  .letter-head-table td.label{width:1.2cm}
-  .letter-head-table td.colon{width:0.3cm}
+  .letter-head-table td.label{width:2.1cm}
+  .letter-head-table td.colon{width:0.5cm}
+  /* value column starts at 2.6cm → body indent 2.6cm */
 
-  /* ---- Body content: indent left 3.5cm dari tepi kertas (1.5cm dari margin) ---- */
+  /* Body content: indent 2.6cm — lurus dengan nilai "Praktek Kerja Lapangan" */
   .letter-content{
-    margin-left:1.5cm;    /* 2cm (page) + 1.5cm = 3.5cm dari tepi kertas */
-    /* right sudah otomatis 1cm dari padding halaman */
+    margin-left:2.6cm;
   }
 
-  /* Yth block */
+  /* Yth. block */
   .letter-to{
     font-size:11pt;
+    margin:0 0 12pt 0;
     line-height:1.5;
-    margin:12pt 0;
   }
-  .letter-to div{display:block}
+  .letter-to > div{display:block}
 
-  /* Paragraf: spacing 12pt before/after, line-height 1.5, special none */
+  /* Paragraf: spacing 12pt, line-height 1.5, tanpa text-indent */
   p{
     font-size:11pt;
     margin:12pt 0;
     text-align:justify;
     line-height:1.5;
-    text-indent:0;
   }
 
-  /* Tabel mahasiswa: indent 1.27cm dari body content */
+  /* Tabel mahasiswa menjorok 1.27cm dari body */
   .student-table{
     border-collapse:collapse;
     margin:12pt 0 12pt 1.27cm;
@@ -275,6 +274,7 @@
   .student-table td{
     padding:0;
     vertical-align:top;
+    line-height:1.5;
   }
   .student-table td:nth-child(1){width:3.2cm}
   .student-table td:nth-child(2){width:0.4cm}
@@ -426,15 +426,9 @@ Jakarta, Indonesia 10270.</textarea>
       <input type="date" id="tanggal">
     </div>
 
-    <div class="form-row">
-      <div class="form-group">
-        <label id="kaprodiLabel">Nama Kaprodi S1 <span class="req">*</span></label>
-        <input type="text" id="namaKaprodi" placeholder="Nama Kaprodi" autocomplete="off">
-      </div>
-      <div class="form-group">
-        <label>NIP Kaprodi <span class="req">*</span></label>
-        <input type="text" id="nipKaprodi" placeholder="NIP" autocomplete="off">
-      </div>
+    <div class="form-group">
+      <label id="kaprodiLabel">Nama Kaprodi S1 <span class="req">*</span></label>
+      <input type="text" id="namaKaprodi" placeholder="Nama Kaprodi (tanpa gelar depan)" autocomplete="off">
     </div>
 
     <div class="form-group">
@@ -461,75 +455,80 @@ Jakarta, Indonesia 10270.</textarea>
         <!-- ================= KOP SURAT (GAMBAR) ================= -->
         <img class="kop-img" src="https://i.imgur.com/92EDVAN.png" alt="Kop Surat FIKOM">
 
-        <!-- ================= NOMOR / LAMP / HAL (rata kiri) ================= -->
-        <table class="letter-head-table">
-          <tr>
-            <td class="label">Nomor</td>
-            <td class="colon">:</td>
-            <td id="outNomor">......./PKL/S1/FIKOM/IX/2026</td>
-          </tr>
-          <tr>
-            <td class="label">Lamp.</td>
-            <td class="colon">:</td>
-            <td>-</td>
-          </tr>
-          <tr>
-            <td class="label">Hal</td>
-            <td class="colon">:</td>
-            <td id="outHal">Praktek Kerja Lapangan</td>
-          </tr>
-        </table>
+        <!-- ================= ISI SURAT ================= -->
+        <div class="letter-body">
 
-        <!-- ================= BODY (indent left 3.5cm dari tepi kertas) ================= -->
-        <div class="letter-content">
-
-          <!-- Yth. — lurus dengan nilai "Praktek Kerja Lapangan" -->
-          <div class="letter-to">
-            <div>Yth. <span id="outTujuanLine1">Substansi Hubungan Masyarakat</span></div>
-            <div id="outTujuanRest">
-              Kementerian Pendidikan Tinggi, Sains dan Teknologi<br>
-              Jl. Jend. Sudirman, Pintu 1, Senayan, Gedung D<br>
-              Jakarta, Indonesia 10270.
-            </div>
-          </div>
-
-          <p>Dengan hormat,</p>
-
-          <p>Untuk memenuhi tugas mahasiswa Fakultas Ilmu Komunikasi, Universitas Prof. Dr. Moestopo (Beragama) yang namanya tercantum di bawah ini :</p>
-
-          <table class="student-table">
-            <tr><td>Nama</td><td>:</td><td id="outNama">-</td></tr>
-            <tr><td>N.I.M</td><td>:</td><td id="outNim">-</td></tr>
-            <tr><td>Konsentrasi</td><td>:</td><td id="outKonsentrasi">-</td></tr>
-            <tr><td>No.Hp/Email</td><td>:</td><td id="outKontak">-</td></tr>
+          <!-- Nomor / Lamp. / Hal — rata kiri di margin -->
+          <table class="letter-head-table">
+            <tr>
+              <td class="label">Nomor</td>
+              <td class="colon">:</td>
+              <td id="outNomor">......./PKL/S1/FIKOM/IX/2026</td>
+            </tr>
+            <tr>
+              <td class="label">Lamp.</td>
+              <td class="colon">:</td>
+              <td>-</td>
+            </tr>
+            <tr>
+              <td class="label">Hal</td>
+              <td class="colon">:</td>
+              <td id="outHal">Praktek Kerja Lapangan</td>
+            </tr>
           </table>
 
-          <p id="outBody1">
-            Mengajukan permohonan untuk melaksanakan Praktek Kerja Lapangan (PKL) selama empat (4) bulan (September – Desember 2025) di Instansi yang Bapak/Ibu pimpin.
-          </p>
+          <!-- Body surat — indent 2.6cm (lurus dengan nilai "Praktek Kerja Lapangan") -->
+          <div class="letter-content">
 
-          <p id="outBody2">
-            Mengenai waktu pelaksanaan PKL tersebut, kami serahkan pada kebijaksanaan Bapak / Ibu.
-          </p>
+            <!-- Yth. -->
+            <div class="letter-to">
+              <div>Yth. <span id="outTujuanLine1">Substansi Hubungan Masyarakat</span></div>
+              <div id="outTujuanRest">
+                Kementerian Pendidikan Tinggi, Sains dan Teknologi<br>
+                Jl. Jend. Sudirman, Pintu 1, Senayan, Gedung D<br>
+                Jakarta, Indonesia 10270.
+              </div>
+            </div>
 
-          <p id="outBody3">
-            Kami berharap Bapak / Ibu dapat membantu, mengingat PKL tersebut mata kuliah wajib bagi mahasiswa kami.
-          </p>
+            <p>Dengan hormat,</p>
 
-          <p>Demikian atas perhatian dan kerjasamanya kami sampaikan terima kasih.</p>
+            <p>Untuk memenuhi tugas mahasiswa Fakultas Ilmu Komunikasi, Universitas Prof. Dr. Moestopo (Beragama) yang namanya tercantum di bawah ini :</p>
+
+            <!-- Tabel mahasiswa menjorok 1.27cm -->
+            <table class="student-table">
+              <tr><td>Nama</td><td>:</td><td id="outNama">-</td></tr>
+              <tr><td>N.I.M</td><td>:</td><td id="outNim">-</td></tr>
+              <tr><td>Konsentrasi</td><td>:</td><td id="outKonsentrasi">-</td></tr>
+              <tr><td>No.Hp/Email</td><td>:</td><td id="outKontak">-</td></tr>
+            </table>
+
+            <p id="outBody1">
+              Mengajukan permohonan untuk melaksanakan Praktek Kerja Lapangan (PKL) selama empat (4) bulan (September – Desember 2025) di Instansi yang Bapak/Ibu pimpin.
+            </p>
+
+            <p id="outBody2">
+              Mengenai waktu pelaksanaan PKL tersebut, kami serahkan pada kebijaksanaan Bapak / Ibu.
+            </p>
+
+            <p id="outBody3">
+              Kami berharap Bapak / Ibu dapat membantu, mengingat PKL tersebut mata kuliah wajib bagi mahasiswa kami.
+            </p>
+
+            <p>Demikian atas perhatian dan kerjasamanya kami sampaikan terima kasih.</p>
+
+          </div>
 
           <!-- Tanda tangan (rata kanan) -->
           <div class="signature-wrap">
             <div class="signature">
               <div class="place-date">Jakarta, <span id="outTanggal">-</span></div>
-              <div class="jabatan" id="outJabatan">Kaprodi S1</div>
+              <div class="jabatan">Kaprodi,</div>
               <div class="sig-space"></div>
               <div class="name" id="outKaprodi">-</div>
             </div>
           </div>
 
         </div>
-
       </div>
     </div>
   </div>
@@ -584,8 +583,8 @@ const JENIS_MAP = {
 };
 
 const KAPRODI_DEFAULT = {
-  S1: { nama:'', nip:'', label:'Nama Kaprodi S1' },
-  S2: { nama:'', nip:'', label:'Nama Kaprodi S2' }
+  S1: { nama:'', label:'Nama Kaprodi S1' },
+  S2: { nama:'', label:'Nama Kaprodi S2' }
 };
 
 const BULAN_ID = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
@@ -712,7 +711,6 @@ function renderJenisOptions(){
   const kd = KAPRODI_DEFAULT[jenjang];
   $('kaprodiLabel').innerHTML = escapeHtml(kd.label) + ' <span class="req">*</span>';
   if (!$('namaKaprodi').value) $('namaKaprodi').value = kd.nama;
-  if (!$('nipKaprodi').value) $('nipKaprodi').value = kd.nip;
 
   updateNomorPreview();
 }
@@ -772,7 +770,6 @@ function updatePreview(){
 
   // Tanda tangan
   $('outTanggal').textContent = formatTanggalID(tanggal);
-  $('outJabatan').textContent = (jenjang === 'S1') ? 'Kaprodi S1' : 'Kaprodi S2';
   $('outKaprodi').textContent = $('namaKaprodi').value.trim() || '-';
 }
 
@@ -797,8 +794,8 @@ function fitPreviewScale(){
   scaler.style.width = '';
 
   const panel = document.querySelector('.preview-panel');
-  const available = panel.clientWidth - 32; // padding kiri/kanan
-  const letterWidth = letter.offsetWidth;   // ≈ 794px (210mm)
+  const available = panel.clientWidth - 32;
+  const letterWidth = letter.offsetWidth;
 
   if (letterWidth > available){
     const scale = available / letterWidth;
@@ -948,9 +945,9 @@ async function generatePDF(){
     };
     await html2pdf().set(opt).from(element).save();
 
-    toast('✅ PDF berhasil diunduh.', 'success');
+    toast('✅ PDF berhasil diunduh & data tersimpan.', 'success');
 
-    // 5. Simpan ke database (Google Sheets) — tidak blocking
+    // 5. Simpan ke database (Google Sheets)
     const payload = {
       nomor: nomorFull,
       jenjang: jenjang,
@@ -1069,15 +1066,14 @@ function init(){
     $('jenjang').value = 'S1';
     setDefaultTanggal();
     renderJenisOptions();
+    $('namaKaprodi').value = '';
     updatePreview();
     toast('Formulir direset.');
   });
 
   window.addEventListener('resize', fitPreviewScale);
 
-  // Reset Kaprodi (kosong — silakan isi manual)
   $('namaKaprodi').value = '';
-  $('nipKaprodi').value = '';
 
   updatePreview();
   setTimeout(fitPreviewScale, 300);
