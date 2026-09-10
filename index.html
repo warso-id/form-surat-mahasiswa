@@ -985,6 +985,10 @@ async function generatePDF(){
     toast('✅ PDF berhasil diunduh. Mengunggah ke Drive...', 'success');
 
     // 6. Upload PDF ke GAS → GAS simpan ke Drive + log ke sheet
+    //    Hitung Tahun Akademik (01 Sept – 31 Agustus) untuk auto-folder
+    const ta = getTahunAkademik(tanggal);              // mis. 2026
+    const taLabel = `${ta - 1}-${ta}`;                 // mis. "2025-2026"
+
     const payload = {
       nomor: nomorFull,
       jenjang: jenjang,
@@ -996,7 +1000,9 @@ async function generatePDF(){
       email: $('email').value.trim(),
       tujuan: $('tujuan').value.trim(),
       periode: `${$('periodeMulai').value.trim()} - ${$('periodeSelesai').value.trim()}`,
-      tanggal: formatTanggalID(tanggal)
+      tanggal: formatTanggalID(tanggal),
+      tahunAkademik: ta,            // ← untuk auto-folder
+      tahunAkademikLabel: taLabel   // ← nama folder, mis. "2025-2026"
     };
     const uploaded = await uploadPdfToGAS(payload, pdfDataUri, filenameOnly);
     if (uploaded){
