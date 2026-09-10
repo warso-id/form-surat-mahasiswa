@@ -211,7 +211,8 @@
   }
 
   /* ================ A4 LETTER ================ */
-  /* Page: A4 210x297mm; margin: top 0.5cm, right 2cm, bottom 2cm, left 2cm */
+  /* Page: A4 210x297mm; margin: top 0.5cm, right 2cm, bottom 2cm, left 2cm
+     min-height 297mm hanya untuk tampilan preview — dihilangkan saat render PDF */
   #letter{
     width:210mm;
     min-height:297mm;
@@ -223,6 +224,17 @@
     line-height:1.5;
     box-shadow:0 4px 22px rgba(0,0,0,.18);
     position:relative;
+  }
+
+  /* Anti-orphan: hindari konten terpotong di tengah halaman PDF */
+  p,
+  .letter-to,
+  .student-table,
+  .signature-wrap,
+  .letter-head-table,
+  .letter-content{
+    page-break-inside:avoid;
+    break-inside:avoid;
   }
 
   /* ---- Kop surat: gambar saja, 0.5cm dari atas, tinggi 3.5cm, lebar = margin tulisan ---- */
@@ -919,6 +931,10 @@ async function uploadPdfToGAS(payload, pdfDataUri, filename){
 
 /* ============================================================
    GENERATE PDF + FOLDER OTOMATIS + UPLOAD & SIMPAN DB
+   ─────────────────────────────────────────────────────────────
+   PERBAIKAN HALAMAN:
+   - Hapus `min-height` sementara → halaman kedua blank otomatis hilang
+   - Jika konten panjang, html2pdf mem-paginate otomatis ke halaman 2, 3, dst.
 ============================================================ */
 async function generatePDF(){
   if (!validateForm()) return;
@@ -928,6 +944,9 @@ async function generatePDF(){
   const originalText = btnText.textContent;
   btn.disabled = true;
   btnText.innerHTML = '<span class="spinner"></span> Memproses...';
+
+  const element = $('letter');
+  const prevMinHeight = element.style.minHeight;
 
   try{
     const jenjang = $('jenjang').value;
@@ -953,8 +972,12 @@ async function generatePDF(){
     const filenameWithFolder = `${folder}/${nimSafe}_${namaSafe}_${jenisInfo.kode}.pdf`;
     const filenameOnly = `${nimSafe}_${namaSafe}_${jenisInfo.kode}.pdf`;
 
-    // 4. Render PDF → dapatkan data URI (base64)
-    const element = $('letter');
+    // 4. === PERBAIKAN HALAMAN BLANK ===
+    //    Hapus min-height 297mm sementara agar konten pendek = 1 halaman saja.
+    //    Konten panjang tetap otomatis di-paginate ke halaman berikutnya.
+    element.style.minHeight = '0';
+
+    // 5. Render PDF → dapatkan data URI (base64)
     const opt = {
       margin: 0,
       filename: filenameWithFolder,
@@ -966,15 +989,17 @@ async function generatePDF(){
         letterRendering: true,
         backgroundColor: '#ffffff',
         scrollX: 0,
-        scrollY: 0
+        scrollY: 0,
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight
       },
       jsPDF: { unit:'mm', format:'a4', orientation:'portrait' },
-      pagebreak: { mode:['avoid-all','css','legacy'] }
+      pagebreak: { mode:['css','legacy'], avoid:['p','.letter-to','.student-table','.signature-wrap','.letter-head-table'] }
     };
 
     const pdfDataUri = await html2pdf().set(opt).from(element).outputPdf('datauristring');
 
-    // 5. Trigger download manual
+    // 6. Trigger download manual
     const a = document.createElement('a');
     a.href = pdfDataUri;
     a.download = filenameOnly;
@@ -984,7 +1009,7 @@ async function generatePDF(){
 
     toast('✅ PDF berhasil diunduh. Mengunggah ke Drive...', 'success');
 
-    // 6. Upload PDF ke GAS → GAS simpan ke Drive + log ke sheet
+    // 7. Upload PDF ke GAS → GAS simpan ke Drive + log ke sheet
     //    Hitung Tahun Akademik (01 Sept – 31 Agustus) untuk auto-folder
     const ta = getTahunAkademik(tanggal);              // mis. 2026
     const taLabel = `${ta - 1}-${ta}`;                 // mis. "2025-2026"
@@ -1015,6 +1040,8 @@ async function generatePDF(){
     console.error(err);
     toast('Gagal generate PDF: ' + err.message, 'error');
   } finally {
+    // 8. Kembalikan min-height untuk preview tetap terlihat seperti halaman A4
+    element.style.minHeight = prevMinHeight || '';
     btn.disabled = false;
     btnText.textContent = originalText;
   }
