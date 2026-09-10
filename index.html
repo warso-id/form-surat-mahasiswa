@@ -211,7 +211,6 @@
   }
 
   /* ================ A4 LETTER ================ */
-  /* Page: A4 210x297mm; margin: top 0.5cm, right 2cm, bottom 2cm, left 2cm */
   #letter{
     width:210mm;
     min-height:297mm;
@@ -225,13 +224,11 @@
     position:relative;
   }
 
-  /* Kelas khusus saat proses render — dimatikan min-heightnya */
   #letter.pdf-render{
     min-height:0 !important;
     box-shadow:none !important;
   }
 
-  /* Anti-orphan: hindari konten terpotong di tengah halaman PDF */
   p,
   .letter-to,
   .student-table,
@@ -242,7 +239,6 @@
     break-inside:avoid;
   }
 
-  /* ---- Kop surat: gambar saja, 0.5cm dari atas, tinggi 3.5cm, lebar = margin tulisan ---- */
   .kop-img{
     display:block;
     width:100%;
@@ -253,7 +249,6 @@
 
   .letter-body{}
 
-  /* Nomor/Lamp/Hal — rata kiri di margin */
   .letter-head-table{
     border-collapse:collapse;
     font-size:11pt;
@@ -270,7 +265,6 @@
   .letter-head-table td.label{width:2.1cm}
   .letter-head-table td.colon{width:0.5cm}
 
-  /* Body content: indent 2.6cm */
   .letter-content{
     margin-left:2.6cm;
   }
@@ -611,6 +605,9 @@ const KAPRODI_DEFAULT = {
 const BULAN_ID = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 const ROMAWI   = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
 
+const TUJUAN_DEFAULT = 'Substansi Hubungan Masyarakat\nKementerian Pendidikan Tinggi, Sains dan Teknologi\nJl. Jend. Sudirman, Pintu 1, Senayan, Gedung D\nJakarta, Indonesia 10270.';
+const DURASI_DEFAULT = 'empat (4) bulan';
+
 /* ============================================================
    UTIL
 ============================================================ */
@@ -621,7 +618,7 @@ function toast(msg, type){
   t.textContent = msg;
   t.className = 'show ' + (type === 'error' ? 'error' : type === 'success' ? 'success' : '');
   clearTimeout(window.__toastTimer);
-  window.__toastTimer = setTimeout(() => { t.className = ''; }, 3000);
+  window.__toastTimer = setTimeout(() => { t.className = ''; }, 3500);
 }
 
 function formatTanggalID(date){
@@ -769,7 +766,7 @@ function updatePreview(){
   $('outKonsentrasi').textContent = $('konsentrasi').value.trim() || '-';
   $('outKontak').textContent = (hp || '-') + '/' + (email || '-');
 
-  const durasi = $('durasi').value.trim() || 'empat (4) bulan';
+  const durasi = $('durasi').value.trim() || DURASI_DEFAULT;
   const pMulai = $('periodeMulai').value.trim() || '-';
   const pSelesai = $('periodeSelesai').value.trim() || '-';
 
@@ -860,6 +857,42 @@ function validateForm(){
 }
 
 /* ============================================================
+   CLEAR FORM — Dipanggil otomatis setelah PDF berhasil
+============================================================ */
+function clearForm(silent){
+  // Reset semua input, select, textarea di dalam form card
+  document.querySelectorAll('.card input, .card select, .card textarea').forEach(el => {
+    if (el.id === 'tujuan'){
+      el.value = TUJUAN_DEFAULT;
+    } else if (el.id === 'durasi'){
+      el.value = DURASI_DEFAULT;
+    } else if (el.tagName === 'SELECT'){
+      el.selectedIndex = 0;
+    } else if (el.type !== 'button'){
+      el.value = '';
+    }
+    el.classList.remove('invalid','valid');
+  });
+
+  // Reset state
+  $('nimError').textContent = '';
+  $('hpError').textContent = '';
+  $('jenjang').value = 'S1';
+  setDefaultTanggal();
+  renderJenisOptions();
+  $('namaKaprodi').value = '';
+  $('nomorPreview').value = '';
+  updatePreview();
+
+  // Reset scroll ke atas
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  if (!silent){
+    toast('Formulir telah dibersihkan untuk pengajuan berikutnya.', 'success');
+  }
+}
+
+/* ============================================================
    GAS — AMBIL NOMOR URUT
 ============================================================ */
 async function fetchNomorFromGAS(jenjang, jenisKode, tanggal){
@@ -925,13 +958,7 @@ function waitForImages(root){
 }
 
 /* ============================================================
-   GENERATE PDF
-   ─────────────────────────────────────────────────────────────
-   ★ PERBAIKAN UTAMA:
-   - JANGAN pakai clone off-screen → penyebab PDF blank
-   - Render langsung dari elemen #letter yang terlihat di layar
-   - Sementara matikan min-height → halaman ke-2 blank tidak muncul
-   - Konten panjang → html2pdf paginate otomatis ke halaman 2, 3, dst.
+   GENERATE PDF + AUTO-CLEAR FORM SETELAH BERHASIL
 ============================================================ */
 async function generatePDF(){
   if (!validateForm()) return;
@@ -943,7 +970,6 @@ async function generatePDF(){
   btnText.innerHTML = '<span class="spinner"></span> Memproses...';
 
   const element = $('letter');
-  // Simpan style asli
   const prevMinHeight = element.style.minHeight;
   const prevBoxShadow = element.style.boxShadow;
 
@@ -974,14 +1000,12 @@ async function generatePDF(){
     // 4. Tunggu gambar kop selesai dimuat
     await waitForImages(element);
 
-    // 5. ★ KUNCI PERBAIKAN: matikan min-height sementara
-    //    → konten pendek = 1 halaman (tanpa halaman ke-2 blank)
-    //    → konten panjang = auto-paginate ke halaman 2, 3, dst.
+    // 5. Matikan min-height sementara → 1 halaman (pendek) / multi-halaman (panjang)
     element.classList.add('pdf-render');
     element.style.minHeight = '0';
     element.style.boxShadow = 'none';
 
-    // 6. Render PDF dari elemen ASLI yang terlihat di layar
+    // 6. Render PDF dari elemen asli
     const opt = {
       margin: 0,
       filename: filenameWithFolder,
@@ -1020,9 +1044,7 @@ async function generatePDF(){
     a.click();
     document.body.removeChild(a);
 
-    toast('✅ PDF berhasil diunduh. Mengunggah ke Drive...', 'success');
-
-    // 8. Upload PDF ke GAS
+    // 8. Upload PDF ke GAS (Drive + sheet log)
     const ta = getTahunAkademik(tanggal);
     const taLabel = `${ta - 1}-${ta}`;
 
@@ -1041,21 +1063,34 @@ async function generatePDF(){
       tahunAkademik: ta,
       tahunAkademikLabel: taLabel
     };
+
+    // Restore style SEBELUM clear form (agar preview kembali normal)
+    element.classList.remove('pdf-render');
+    element.style.minHeight = prevMinHeight;
+    element.style.boxShadow = prevBoxShadow;
+
+    // ★★★ CLEAR FORM setelah PDF berhasil diunduh ★★★
+    //    Dipanggil SETELAH payload terkumpul (data sudah dibaca).
+    clearForm(true);
+
+    toast('✅ PDF berhasil diunduh. Formulir dibersihkan.', 'success');
+
+    // Upload di background (tidak blocking clear form)
     const uploaded = await uploadPdfToGAS(payload, pdfDataUri, filenameOnly);
     if (uploaded){
-      toast('✅ PDF tersimpan di Drive & sheet.', 'success');
+      toast('✅ PDF juga tersimpan di Drive & sheet.', 'success');
     } else {
       toast('⚠️ PDF diunduh, tapi gagal tersimpan di Drive.', 'error');
     }
 
   } catch(err){
     console.error(err);
-    toast('Gagal generate PDF: ' + err.message, 'error');
-  } finally {
-    // 9. Restore style asli
+    // Kembalikan style jika error
     element.classList.remove('pdf-render');
     element.style.minHeight = prevMinHeight;
     element.style.boxShadow = prevBoxShadow;
+    toast('Gagal generate PDF: ' + err.message, 'error');
+  } finally {
     btn.disabled = false;
     btnText.textContent = originalText;
   }
@@ -1138,26 +1173,7 @@ function init(){
 
   $('btnReset').addEventListener('click', () => {
     if (!confirm('Reset semua data formulir?')) return;
-    document.querySelectorAll('.card input, .card select, .card textarea').forEach(el => {
-      if (el.id === 'tujuan'){
-        el.value = 'Substansi Hubungan Masyarakat\nKementerian Pendidikan Tinggi, Sains dan Teknologi\nJl. Jend. Sudirman, Pintu 1, Senayan, Gedung D\nJakarta, Indonesia 10270.';
-      } else if (el.id === 'durasi'){
-        el.value = 'empat (4) bulan';
-      } else if (el.tagName === 'SELECT'){
-        el.selectedIndex = 0;
-      } else if (el.type !== 'button'){
-        el.value = '';
-      }
-      el.classList.remove('invalid','valid');
-    });
-    $('nimError').textContent = '';
-    $('hpError').textContent = '';
-    $('jenjang').value = 'S1';
-    setDefaultTanggal();
-    renderJenisOptions();
-    $('namaKaprodi').value = '';
-    updatePreview();
-    toast('Formulir direset.');
+    clearForm(false);
   });
 
   window.addEventListener('resize', fitPreviewScale);
