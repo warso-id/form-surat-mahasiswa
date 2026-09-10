@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b5d4b"><title>FIKOM Digital Service</title>
+<link rel="icon" href="https://i.imgur.com/JkxRYd6.png">
+<link rel="stylesheet" href="css/app.css"><link rel="stylesheet" href="css/chat.css"><link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+<header class="topbar"><div class="brand"><img src="https://i.imgur.com/JkxRYd6.png"><div><b>FIKOM Digital Service</b><small>Universitas Prof. Dr. Moestopo (Beragama)</small></div></div>
+<div class="top-actions"><button id="notifBtn" class="icon-btn">🔔<span id="notifBadge"></span></button><button id="logoutBtn" class="ghost-btn hidden">Keluar</button></div></header>
+<main>
+<section id="loginView" class="auth-view"><div class="auth-card"><img class="auth-logo" src="https://i.imgur.com/JkxRYd6.png"><span class="eyebrow">LAYANAN SURAT DIGITAL</span>
+<h1>Semua urusan surat,<br><span>lebih simpel.</span></h1><p>Ajukan, pantau, revisi, dan terima surat secara digital.</p>
+<form id="loginForm"><label>NIM / Email / Username</label><input id="loginIdentity" required autocomplete="username"><label>Password</label><input id="loginPassword" required type="password" autocomplete="current-password"><button class="primary-btn full">Masuk →</button></form><div id="loginMsg" class="form-msg"></div></div></section>
+<section id="appView" class="hidden"><div class="page-wrap"><aside class="sidebar"><div id="userCard" class="user-card"></div><nav>
+<button class="nav-item active" data-view="dashboard">🏠 Dashboard</button><button class="nav-item" data-view="chat">💬 Layanan Surat</button><button class="nav-item" data-view="pengajuan">📋 Pengajuan Saya</button><button class="nav-item" data-view="workflow" id="workflowNav">⚡ Approval Center</button>
+</nav></aside><section class="content"><div id="dashboardView" class="view"></div><div id="chatView" class="view hidden"></div><div id="pengajuanView" class="view hidden"></div><div id="workflowView" class="view hidden"></div></section></div></section>
+</main><div id="toast" class="toast"></div>
+<script src="js/api.js"></script><script src="js/auth.js"></script><script src="js/chat.js"></script><script src="js/pengajuan.js"></script><script src="js/workflow.js"></script><script src="js/notification.js"></script><script src="js/app.js"></script>
+</body></html>
