@@ -225,7 +225,7 @@
     position:relative;
   }
 
-  /* Kelas khusus yang dipakai saat render PDF (clone) — matikan min-height */
+  /* Kelas khusus saat proses render — dimatikan min-heightnya */
   #letter.pdf-render{
     min-height:0 !important;
     box-shadow:none !important;
@@ -245,16 +245,13 @@
   /* ---- Kop surat: gambar saja, 0.5cm dari atas, tinggi 3.5cm, lebar = margin tulisan ---- */
   .kop-img{
     display:block;
-    width:100%;         /* = 210 - 2 - 2 = 206mm */
+    width:100%;
     height:3.5cm;
     object-fit:fill;
     margin:0 0 0.5cm 0;
   }
 
-  /* ---- Body: Nomor/Lamp/Hal di margin, body di-indent 3.5cm ---- */
-  .letter-body{
-    /* no extra padding */
-  }
+  .letter-body{}
 
   /* Nomor/Lamp/Hal — rata kiri di margin */
   .letter-head-table{
@@ -272,14 +269,12 @@
   }
   .letter-head-table td.label{width:2.1cm}
   .letter-head-table td.colon{width:0.5cm}
-  /* value column starts at 2.6cm → body indent 2.6cm */
 
-  /* Body content: indent 2.6cm (lurus dengan nilai "Praktek Kerja Lapangan") */
+  /* Body content: indent 2.6cm */
   .letter-content{
     margin-left:2.6cm;
   }
 
-  /* Yth. block */
   .letter-to{
     font-size:11pt;
     margin:0 0 12pt 0;
@@ -287,7 +282,6 @@
   }
   .letter-to > div{display:block}
 
-  /* Paragraf: spacing 12pt, line-height 1.5, tanpa text-indent */
   p{
     font-size:11pt;
     margin:12pt 0;
@@ -295,7 +289,6 @@
     line-height:1.5;
   }
 
-  /* Tabel mahasiswa menjorok 1.27cm dari body */
   .student-table{
     border-collapse:collapse;
     margin:12pt 0 12pt 1.27cm;
@@ -310,7 +303,6 @@
   .student-table td:nth-child(1){width:3.2cm}
   .student-table td:nth-child(2){width:0.4cm}
 
-  /* Signature: rata kanan */
   .signature-wrap{
     margin-top:24pt;
     overflow:hidden;
@@ -489,7 +481,7 @@ Jakarta, Indonesia 10270.</textarea>
         <!-- ================= ISI SURAT ================= -->
         <div class="letter-body">
 
-          <!-- Nomor / Lamp. / Hal — rata kiri di margin -->
+          <!-- Nomor / Lamp. / Hal -->
           <table class="letter-head-table">
             <tr>
               <td class="label">Nomor</td>
@@ -508,10 +500,9 @@ Jakarta, Indonesia 10270.</textarea>
             </tr>
           </table>
 
-          <!-- Body surat — indent 2.6cm (lurus dengan nilai "Praktek Kerja Lapangan") -->
+          <!-- Body surat -->
           <div class="letter-content">
 
-            <!-- Yth. -->
             <div class="letter-to">
               <div>Yth. <span id="outTujuanLine1">Substansi Hubungan Masyarakat</span></div>
               <div id="outTujuanRest">
@@ -525,7 +516,6 @@ Jakarta, Indonesia 10270.</textarea>
 
             <p>Untuk memenuhi tugas mahasiswa Fakultas Ilmu Komunikasi, Universitas Prof. Dr. Moestopo (Beragama) yang namanya tercantum di bawah ini :</p>
 
-            <!-- Tabel mahasiswa menjorok 1.27cm -->
             <table class="student-table">
               <tr><td>Nama</td><td>:</td><td id="outNama">-</td></tr>
               <tr><td>N.I.M</td><td>:</td><td id="outNim">-</td></tr>
@@ -549,7 +539,7 @@ Jakarta, Indonesia 10270.</textarea>
 
           </div>
 
-          <!-- Tanda tangan (rata kanan) -->
+          <!-- Tanda tangan -->
           <div class="signature-wrap">
             <div class="signature">
               <div class="place-date">Jakarta, <span id="outTanggal">-</span></div>
@@ -646,18 +636,15 @@ function escapeHtml(s){
 
 /* ============================================================
    TAHUN AKADEMIK (01 Sept – 31 Agustus)
-   Dipakai untuk RESET counter nomor urut di GAS.
 ============================================================ */
 function getTahunAkademik(date){
-  const m = date.getMonth(); // 0 = Jan, 8 = Sept
+  const m = date.getMonth();
   const y = date.getFullYear();
   return m >= 8 ? y + 1 : y;
 }
 
 /* ============================================================
    VALIDASI NIM
-   S1 : TTTT + 41 + NNN (NNN ≥ 001)
-   S2 : TTTT + 31 + NNN (NNN ≥ 001)
 ============================================================ */
 function validateNIM(nim, jenjang){
   const cleaned = (nim || '').trim();
@@ -707,12 +694,6 @@ function validateEmail(email){
 
 /* ============================================================
    NOMOR SURAT
-   S1 : …/{KODE}/S1/FIKOM/{ROMAWI}/{TAHUN_MASEHI}
-   S2 : …/{KODE}/S2/MIK-FIKOM/{ROMAWI}/{TAHUN_MASEHI}
-
-   → Bulan = bulan tanggal surat (Romawi)
-   → Tahun = TAHUN MASEHI (per tahun nasional)
-   → Counter reset ke 001 tiap Tahun Akademik (dihandle di GAS)
 ============================================================ */
 function buildNomorSuffix(jenjang, kodeJenis, tanggal){
   const rom = ROMAWI[tanggal.getMonth()];
@@ -768,7 +749,6 @@ function updatePreview(){
   const hp = $('hp').value.trim();
   const email = $('email').value.trim();
 
-  // Nomor
   const suffix = buildNomorSuffix(jenjang, jenisInfo.kode, tanggal);
   const nomorPreviewVal = $('nomorPreview').value;
   if (nomorPreviewVal && nomorPreviewVal.includes('/')){
@@ -777,22 +757,18 @@ function updatePreview(){
     $('outNomor').textContent = '......./' + suffix;
   }
 
-  // Hal
   $('outHal').textContent = jenisInfo.hal;
 
-  // Tujuan
   const tujuanRaw = $('tujuan').value.trim();
   const tujuanLines = tujuanRaw.split('\n').map(s => s.trim()).filter(Boolean);
   $('outTujuanLine1').textContent = tujuanLines[0] || '-';
   $('outTujuanRest').innerHTML = tujuanLines.slice(1).map(escapeHtml).join('<br>');
 
-  // Data mahasiswa
   $('outNama').textContent = $('nama').value.trim() || '-';
   $('outNim').textContent = nimFormatted;
   $('outKonsentrasi').textContent = $('konsentrasi').value.trim() || '-';
   $('outKontak').textContent = (hp || '-') + '/' + (email || '-');
 
-  // Body
   const durasi = $('durasi').value.trim() || 'empat (4) bulan';
   const pMulai = $('periodeMulai').value.trim() || '-';
   const pSelesai = $('periodeSelesai').value.trim() || '-';
@@ -804,7 +780,6 @@ function updatePreview(){
   $('outBody3').textContent =
     `Kami berharap Bapak / Ibu dapat membantu, mengingat ${jenisInfo.shortLabel} tersebut mata kuliah wajib bagi mahasiswa kami.`;
 
-  // Tanda tangan
   $('outTanggal').textContent = formatTanggalID(tanggal);
   $('outKaprodi').textContent = $('namaKaprodi').value.trim() || '-';
 }
@@ -818,7 +793,7 @@ function updateNomorPreview(){
 }
 
 /* ============================================================
-   SCALE PREVIEW AGAR PROPORSIONAL
+   SCALE PREVIEW
 ============================================================ */
 function fitPreviewScale(){
   const scaler = $('previewScaler');
@@ -909,7 +884,7 @@ async function fetchNomorFromGAS(jenjang, jenisKode, tanggal){
 }
 
 /* ============================================================
-   GAS — UPLOAD PDF + SIMPAN LOG KE SHEET
+   GAS — UPLOAD PDF + SIMPAN LOG
 ============================================================ */
 async function uploadPdfToGAS(payload, pdfDataUri, filename){
   try{
@@ -932,8 +907,7 @@ async function uploadPdfToGAS(payload, pdfDataUri, filename){
 }
 
 /* ============================================================
-   UTIL — TUNGGU SEMUA IMAGE SELESAI DIMUAT
-   (mencegah rendering aneh / blank saat gambar belum siap)
+   TUNGGU GAMBAR SELESAI DIMUAT
 ============================================================ */
 function waitForImages(root){
   const imgs = Array.from(root.querySelectorAll('img'));
@@ -945,42 +919,19 @@ function waitForImages(root){
       const done = () => resolve();
       img.addEventListener('load', done, { once:true });
       img.addEventListener('error', done, { once:true });
-      // Safety timeout — jika gambar lambat, lanjut saja (maks 8 detik)
       setTimeout(done, 8000);
     });
   }));
 }
 
 /* ============================================================
-   BUAT CLONE KHUSUS UNTUK RENDER PDF
-   - Clone ditaruh off-screen
-   - min-height dimatikan → konten pendek = 1 halaman (tanpa halaman blank)
+   GENERATE PDF
+   ─────────────────────────────────────────────────────────────
+   ★ PERBAIKAN UTAMA:
+   - JANGAN pakai clone off-screen → penyebab PDF blank
+   - Render langsung dari elemen #letter yang terlihat di layar
+   - Sementara matikan min-height → halaman ke-2 blank tidak muncul
    - Konten panjang → html2pdf paginate otomatis ke halaman 2, 3, dst.
-============================================================ */
-function makePdfClone(){
-  const original = $('letter');
-  const clone = original.cloneNode(true);
-
-  // Reset atribut ID agar tidak duplikat
-  clone.removeAttribute('id');
-
-  // Set style khusus render PDF
-  clone.classList.add('pdf-render');
-  clone.style.position   = 'fixed';
-  clone.style.left       = '-10000px';   // off-screen
-  clone.style.top        = '0';
-  clone.style.minHeight  = '0';          // ★ kunci: hilangkan min-height A4
-  clone.style.boxShadow  = 'none';
-  clone.style.margin     = '0';
-  clone.style.zIndex     = '-1';
-  clone.style.pointerEvents = 'none';
-
-  document.body.appendChild(clone);
-  return clone;
-}
-
-/* ============================================================
-   GENERATE PDF + AUTO-PAGINATE + UPLOAD & SIMPAN DB
 ============================================================ */
 async function generatePDF(){
   if (!validateForm()) return;
@@ -991,7 +942,10 @@ async function generatePDF(){
   btn.disabled = true;
   btnText.innerHTML = '<span class="spinner"></span> Memproses...';
 
-  let clone = null;
+  const element = $('letter');
+  // Simpan style asli
+  const prevMinHeight = element.style.minHeight;
+  const prevBoxShadow = element.style.boxShadow;
 
   try{
     const jenjang = $('jenjang').value;
@@ -1017,13 +971,17 @@ async function generatePDF(){
     const filenameWithFolder = `${folder}/${nimSafe}_${namaSafe}_${jenisInfo.kode}.pdf`;
     const filenameOnly = `${nimSafe}_${namaSafe}_${jenisInfo.kode}.pdf`;
 
-    // 4. Buat CLONE khusus render → preview asli tidak terganggu
-    clone = makePdfClone();
+    // 4. Tunggu gambar kop selesai dimuat
+    await waitForImages(element);
 
-    // 5. Tunggu semua gambar (termasuk kop) selesai dimuat di clone
-    await waitForImages(clone);
+    // 5. ★ KUNCI PERBAIKAN: matikan min-height sementara
+    //    → konten pendek = 1 halaman (tanpa halaman ke-2 blank)
+    //    → konten panjang = auto-paginate ke halaman 2, 3, dst.
+    element.classList.add('pdf-render');
+    element.style.minHeight = '0';
+    element.style.boxShadow = 'none';
 
-    // 6. Render PDF dari clone
+    // 6. Render PDF dari elemen ASLI yang terlihat di layar
     const opt = {
       margin: 0,
       filename: filenameWithFolder,
@@ -1035,9 +993,7 @@ async function generatePDF(){
         backgroundColor: '#ffffff',
         logging: false,
         scrollX: 0,
-        scrollY: 0,
-        windowWidth: 794,             // A4 @96dpi
-        windowHeight: clone.scrollHeight
+        scrollY: 0
       },
       jsPDF: {
         unit: 'mm',
@@ -1045,8 +1001,6 @@ async function generatePDF(){
         orientation: 'portrait',
         compress: true
       },
-      // mode 'css' + 'legacy' → mengikuti aturan page-break-inside: avoid
-      // 'avoid-all' DIHINDARI karena bisa memaksa elemen ke halaman baru.
       pagebreak: {
         mode: ['css', 'legacy'],
         avoid: ['p', '.letter-to', '.student-table', '.signature-wrap', '.letter-head-table']
@@ -1055,10 +1009,10 @@ async function generatePDF(){
 
     const pdfDataUri = await html2pdf()
       .set(opt)
-      .from(clone)
+      .from(element)
       .outputPdf('datauristring');
 
-    // 7. Trigger download manual
+    // 7. Trigger download
     const a = document.createElement('a');
     a.href = pdfDataUri;
     a.download = filenameOnly;
@@ -1068,7 +1022,7 @@ async function generatePDF(){
 
     toast('✅ PDF berhasil diunduh. Mengunggah ke Drive...', 'success');
 
-    // 8. Upload PDF ke GAS → GAS simpan ke Drive + log ke sheet
+    // 8. Upload PDF ke GAS
     const ta = getTahunAkademik(tanggal);
     const taLabel = `${ta - 1}-${ta}`;
 
@@ -1098,10 +1052,10 @@ async function generatePDF(){
     console.error(err);
     toast('Gagal generate PDF: ' + err.message, 'error');
   } finally {
-    // 9. Bersihkan clone
-    if (clone && clone.parentNode){
-      clone.parentNode.removeChild(clone);
-    }
+    // 9. Restore style asli
+    element.classList.remove('pdf-render');
+    element.style.minHeight = prevMinHeight;
+    element.style.boxShadow = prevBoxShadow;
     btn.disabled = false;
     btnText.textContent = originalText;
   }
